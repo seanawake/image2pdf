@@ -9,18 +9,15 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <style>
-    /* ====== GLOBAL FIXES ====== */
     *, *::before, *::after { box-sizing: border-box; }
     :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
-    /* ====== THEME TOKENS (Modern SaaS) ====== */
     :root{
       --radius: 18px;
       --radius2: 14px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
-      /* Default = dark */
       --bg0:#070a10;
       --bg1:#0b1020;
       --panel: rgba(18, 24, 38, .72);
@@ -81,7 +78,6 @@
 
     .wrap{ max-width:1120px; margin:28px auto; padding:0 var(--pagePad); }
 
-    /* ====== TOP BAR ====== */
     .topbar{
       display:flex;
       align-items:center;
@@ -89,36 +85,14 @@
       gap:14px;
       margin-bottom:14px;
     }
-    .title{
-      display:flex;
-      flex-direction:column;
-      gap:5px;
-      min-width:0;
-    }
-    h1{
-      margin:0;
-      font-size:20px;
-      letter-spacing:.2px;
-      line-height:1.2;
-    }
-    .sub{
-      margin:0;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.35;
-    }
+    .title{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+    h1{ margin:0; font-size:20px; letter-spacing:.2px; line-height:1.2; }
+    .sub{ margin:0; color:var(--muted); font-size:13px; line-height:1.35; }
 
-    .rightTools{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex: 0 0 auto;
-    }
+    .rightTools{ display:flex; align-items:center; gap:10px; flex: 0 0 auto; }
 
     .badge{
-      display:flex;
-      gap:8px;
-      align-items:center;
+      display:flex; gap:8px; align-items:center;
       padding:8px 10px;
       border-radius:999px;
       border:1px solid var(--border);
@@ -130,11 +104,8 @@
       box-shadow: 0 10px 30px rgba(0,0,0,.08);
     }
 
-    /* ====== THEME TOGGLE (like your screenshot) ====== */
     .themeToggle{
-      display:flex;
-      align-items:center;
-      gap:0;
+      display:flex; align-items:center; gap:0;
       padding:4px;
       border-radius:999px;
       border:1px solid var(--toggleBorder);
@@ -144,27 +115,19 @@
       box-shadow: 0 12px 30px rgba(0,0,0,.10);
     }
     .toggleBtn{
-      width:40px;
-      height:34px;
-      border:0;
-      border-radius:999px;
+      width:40px; height:34px;
+      border:0; border-radius:999px;
       background: transparent;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      display:flex; align-items:center; justify-content:center;
       cursor:pointer;
       transition: background .18s ease, transform .18s ease;
       color: var(--toggleIcon);
     }
     .toggleBtn svg{ width:18px; height:18px; }
-    .toggleBtn[aria-pressed="true"]{
-      background: var(--toggleActive);
-      color: var(--toggleIconActive);
-    }
+    .toggleBtn[aria-pressed="true"]{ background: var(--toggleActive); color: var(--toggleIconActive); }
     .toggleBtn:hover{ transform: translateY(-1px); }
     .toggleBtn:active{ transform: translateY(0px); }
 
-    /* ====== LAYOUT ====== */
     .grid{
       display:grid;
       grid-template-columns: 1.25fr .75fr;
@@ -176,10 +139,8 @@
       .grid{ grid-template-columns: 1fr; }
       .topbar{ flex-direction:column; align-items:flex-start; }
       .rightTools{ width:100%; justify-content:space-between; }
-      .badge{ flex: 0 0 auto; }
     }
 
-    /* ====== CARDS ====== */
     .card{
       background: linear-gradient(180deg, var(--panel), var(--panel2));
       border:1px solid var(--border);
@@ -187,15 +148,13 @@
       box-shadow:var(--shadow);
       padding:16px;
       overflow:hidden;
-      transition: background .25s ease, border-color .25s ease, box-shadow .25s ease;
       backdrop-filter: var(--glass);
       -webkit-backdrop-filter: var(--glass);
       position:relative;
     }
     .card::before{
       content:"";
-      position:absolute;
-      inset:-1px;
+      position:absolute; inset:-1px;
       border-radius:var(--radius);
       pointer-events:none;
       background: radial-gradient(800px 220px at 15% 0%, color-mix(in oklab, var(--accent) 12%, transparent), transparent 60%);
@@ -210,13 +169,8 @@
       gap:10px;
       margin:2px 0 10px;
     }
-    .sectionTitle h2{
-      margin:0;
-      font-size:14px;
-      letter-spacing:.2px;
-    }
+    .sectionTitle h2{ margin:0; font-size:14px; letter-spacing:.2px; }
 
-    /* ====== DROPZONE ====== */
     .drop{
       border:2px dashed color-mix(in oklab, var(--accent) 55%, transparent);
       border-radius:var(--radius);
@@ -234,8 +188,7 @@
     }
     .drop::after{
       content:"";
-      position:absolute;
-      inset:-70px;
+      position:absolute; inset:-70px;
       background: radial-gradient(520px 260px at 22% 30%, color-mix(in oklab, var(--accent2) 20%, transparent), transparent 60%);
       pointer-events:none;
       opacity:.75;
@@ -248,7 +201,6 @@
       transform: translateY(-1px);
     }
 
-    /* ====== CONTROLS ====== */
     .muted{ color:var(--muted); font-size:13px; line-height:1.45; }
     .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 
@@ -318,6 +270,7 @@
       justify-content:space-between;
       gap:10px;
     }
+
     .pill{
       font-family:var(--mono);
       font-size:12px;
@@ -342,12 +295,11 @@
     }
     .checkrow input{ margin-top:2px; transform:scale(1.15); }
 
-    /* ====== FILE LIST ====== */
     .list{ margin-top:14px; display:flex; flex-direction:column; gap:10px; }
 
     .item{
       display:grid;
-      grid-template-columns: 76px minmax(0,1fr) auto;
+      grid-template-columns: 32px 76px minmax(0,1fr) auto;
       gap:10px;
       align-items:center;
       padding:10px;
@@ -355,14 +307,53 @@
       border-radius:16px;
       background: color-mix(in oklab, var(--panel) 55%, transparent);
       overflow:hidden;
+      user-select:none;
+      will-change: transform;
     }
+
+    .item.drag-source{
+      opacity:.25;
+      filter:saturate(.8);
+    }
+
+    .item.dropTarget{
+      border-color: color-mix(in oklab, var(--accent2) 70%, var(--border));
+      background: color-mix(in oklab, var(--accent) 8%, var(--panel));
+    }
+
+    .handle{
+      width:32px;
+      height:44px;
+      border-radius:12px;
+      border:1px solid color-mix(in oklab, var(--borderStrong) 70%, transparent);
+      background: color-mix(in oklab, var(--panel) 65%, transparent);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor: grab;
+      transition: transform .12s ease, border-color .12s ease;
+      touch-action: none;
+    }
+    .handle:active{ cursor: grabbing; transform: scale(.98); }
+
+    .dots{
+      width:14px;
+      height:18px;
+      opacity:.85;
+      background: radial-gradient(currentColor 1.1px, transparent 1.2px) 0 0/7px 7px;
+      color: color-mix(in oklab, var(--muted) 70%, var(--text));
+      border-radius:8px;
+    }
+
     .thumb{
       width:76px; height:56px;
       border-radius:12px;
       object-fit:cover;
       border:1px solid color-mix(in oklab, var(--borderStrong) 70%, transparent);
       background: color-mix(in oklab, var(--panel) 55%, transparent);
+      pointer-events:none;
     }
+
     .meta{ display:flex; flex-direction:column; gap:2px; min-width:0; }
     .name{
       font-size:13px;
@@ -376,18 +367,63 @@
 
     @media (max-width: 560px){
       .item{
-        grid-template-columns: 64px minmax(0,1fr);
+        grid-template-columns: 32px 64px minmax(0,1fr);
         grid-template-rows: auto auto;
         align-items:start;
       }
       .thumb{ width:64px; height:64px; }
       .actions{ grid-column: 1 / -1; justify-content:flex-start; }
+      .handle{ height:56px; }
     }
 
     .status{ margin-top:10px; font-size:13px; color:var(--muted); min-height:18px; }
     .ok{ color: var(--ok); }
     .bad{ color: var(--danger); }
     .hint{ margin-top:10px; font-size:12px; color:var(--muted); line-height:1.45; }
+
+    /* ====== GHOST PREVIEW ====== */
+    .dragGhost{
+      position: fixed;
+      left: 0; top: 0;
+      pointer-events: none;
+      z-index: 9999;
+      width: min(560px, calc(100vw - 24px));
+      transform: translate3d(-9999px,-9999px,0);
+      opacity: .98;
+      filter: drop-shadow(0 18px 50px rgba(0,0,0,.35));
+    }
+    .dragGhost .ghostCard{
+      display:grid;
+      grid-template-columns: 76px minmax(0,1fr);
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border-radius:16px;
+      border:1px solid color-mix(in oklab, var(--accent) 30%, var(--borderStrong));
+      background: linear-gradient(180deg,
+        color-mix(in oklab, var(--panel) 92%, transparent),
+        color-mix(in oklab, var(--panel2) 92%, transparent)
+      );
+      backdrop-filter: var(--glass);
+      -webkit-backdrop-filter: var(--glass);
+    }
+    .dragGhost img{
+      width:76px; height:56px;
+      border-radius:12px;
+      object-fit:cover;
+      border:1px solid color-mix(in oklab, var(--borderStrong) 70%, transparent);
+    }
+    .dragGhost .gTitle{
+      font-weight:950;
+      font-size:13px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .dragGhost .gSub{
+      color:var(--muted);
+      font-size:12px;
+    }
   </style>
 </head>
 
@@ -396,21 +432,18 @@
     <div class="topbar">
       <div class="title">
         <h1>Image → PDF Converter</h1>
-        <p class="sub">Drop PNG/JPG files, reorder pages, export a multi-page PDF — all inside your browser.</p>
+        <p class="sub">Drop PNG/JPG files, drag to reorder pages, export a multi-page PDF — all inside your browser.</p>
       </div>
 
       <div class="rightTools">
-        <!-- Theme toggle -->
         <div class="themeToggle" role="group" aria-label="Theme toggle">
           <button id="btnDark" class="toggleBtn" aria-pressed="true" title="Dark">
-            <!-- Moon -->
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M21 14.5c-1.4.9-3.1 1.4-4.9 1.4A8.6 8.6 0 0 1 7.5 7.9c0-1.8.5-3.5 1.4-4.9A9.5 9.5 0 1 0 21 14.5Z"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
           <button id="btnLight" class="toggleBtn" aria-pressed="false" title="Light">
-            <!-- Sun -->
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z" stroke="currentColor" stroke-width="2"/>
               <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
@@ -428,7 +461,6 @@
     </div>
 
     <div class="grid">
-      <!-- LEFT -->
       <div class="card">
         <div class="sectionTitle">
           <h2>Input</h2>
@@ -454,11 +486,10 @@
 
         <div class="status" id="status"></div>
         <div class="hint">
-          If you drop huge camera photos (6K/8K), the browser can run out of memory. Resize first or convert in smaller batches.
+          <b>Hint: </b>Reorder pages by dragging the handle. PDF pages follow your list order.
         </div>
       </div>
 
-      <!-- RIGHT -->
       <div class="card">
         <div class="sectionTitle">
           <h2>PDF Settings</h2>
@@ -510,9 +541,6 @@
           <button id="makeBtn" class="btn primary" disabled>⚡ Convert to PDF</button>
         </div>
 
-        <div class="muted" style="margin-top:12px;">
-          Page order = the list on the left. Use ▲/▼ to reorder.
-        </div>
       </div>
     </div>
   </div>
@@ -520,7 +548,7 @@
 <script>
   const { jsPDF } = window.jspdf;
 
-  // ===== THEME (remember locally) =====
+  // ===== THEME =====
   const THEME_KEY = "img2pdf_theme";
   const btnDark = document.getElementById("btnDark");
   const btnLight = document.getElementById("btnLight");
@@ -531,31 +559,17 @@
     btnDark.setAttribute("aria-pressed", String(isDark));
     btnLight.setAttribute("aria-pressed", String(!isDark));
   }
-
   function initTheme(){
     const saved = localStorage.getItem(THEME_KEY);
-    if (saved === "dark" || saved === "light"){
-      applyTheme(saved);
-      return;
-    }
-    // No saved preference -> follow system
+    if (saved === "dark" || saved === "light"){ applyTheme(saved); return; }
     const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
     applyTheme(prefersDark ? "dark" : "light");
   }
-
-  btnDark.addEventListener("click", () => {
-    localStorage.setItem(THEME_KEY, "dark");
-    applyTheme("dark");
-  });
-
-  btnLight.addEventListener("click", () => {
-    localStorage.setItem(THEME_KEY, "light");
-    applyTheme("light");
-  });
-
+  btnDark.addEventListener("click", () => { localStorage.setItem(THEME_KEY, "dark"); applyTheme("dark"); });
+  btnLight.addEventListener("click", () => { localStorage.setItem(THEME_KEY, "light"); applyTheme("light"); });
   initTheme();
 
-  // ===== APP LOGIC =====
+  // ===== APP =====
   const drop = document.getElementById('drop');
   const fileInput = document.getElementById('fileInput');
   const listEl = document.getElementById('list');
@@ -574,7 +588,23 @@
   const countBadge = document.getElementById('countBadge');
   const pageHint = document.getElementById('pageHint');
 
-  let items = []; // { file, url }
+  let items = []; // { id, file, url }
+  let nextId = 1;
+
+  // Drag state + autoscroll state
+  const drag = {
+    active: false,
+    id: null,
+    pointerId: null,
+    ghost: null,
+    offsetX: 14,
+    offsetY: 14,
+    raf: 0,
+    lastX: 0,
+    lastY: 0,
+    autoScrollRaf: 0,
+    autoScrollV: 0
+  };
 
   function setStatus(msg, kind="") {
     statusEl.className = "status " + kind;
@@ -609,15 +639,11 @@
     const files = Array.from(fileList || []).filter(f =>
       f && (f.type === "image/png" || f.type === "image/jpeg")
     );
-
-    if (!files.length) {
-      setStatus("No valid PNG/JPG files detected.", "bad");
-      return;
-    }
+    if (!files.length) { setStatus("No valid PNG/JPG files detected.", "bad"); return; }
 
     for (const f of files) {
       const url = URL.createObjectURL(f);
-      items.push({ file: f, url });
+      items.push({ id: String(nextId++), file: f, url });
     }
     render();
     setStatus(`${files.length} image(s) added.`, "ok");
@@ -630,24 +656,286 @@
     setStatus("");
   }
 
-  function moveItem(idx, dir){
-    const j = idx + dir;
-    if (j < 0 || j >= items.length) return;
-    [items[idx], items[j]] = [items[j], items[idx]];
-    render();
-  }
-
-  function removeItem(idx){
+  function removeItem(id){
+    const idx = items.findIndex(x => x.id === id);
+    if (idx < 0) return;
     URL.revokeObjectURL(items[idx].url);
     items.splice(idx, 1);
     render();
   }
 
-  function render(){
+  // ===== FLIP animation (smooth swap) =====
+  function capturePositions(){
+    const map = new Map();
+    listEl.querySelectorAll(".item").forEach(el => {
+      map.set(el.dataset.id, el.getBoundingClientRect());
+    });
+    return map;
+  }
+
+  function playFLIP(before){
+    listEl.querySelectorAll(".item").forEach(el => {
+      const id = el.dataset.id;
+      const b = before.get(id);
+      if (!b) return;
+      const a = el.getBoundingClientRect();
+      const dx = b.left - a.left;
+      const dy = b.top - a.top;
+      if (dx === 0 && dy === 0) return;
+
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      el.style.transition = "transform 0s";
+      requestAnimationFrame(() => {
+        el.style.transition = "transform 180ms cubic-bezier(.2,.8,.2,1)";
+        el.style.transform = "";
+      });
+    });
+  }
+
+  function reorderById(dragId, targetIndex){
+    const fromIndex = items.findIndex(x => x.id === dragId);
+    if (fromIndex < 0) return false;
+
+    const toIndex = Math.max(0, Math.min(items.length - 1, targetIndex));
+    if (fromIndex === toIndex) return false;
+
+    const [m] = items.splice(fromIndex, 1);
+    items.splice(toIndex, 0, m);
+    return true;
+  }
+
+  // ===== Ghost =====
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, s => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[s]));
+  }
+
+  function createGhost(fromItemEl, item){
+    const ghost = document.createElement("div");
+    ghost.className = "dragGhost";
+    ghost.innerHTML = `
+      <div class="ghostCard">
+        <img src="${item.url}" alt="">
+        <div style="min-width:0;">
+          <div class="gTitle">${escapeHtml(item.file.name)}</div>
+          <div class="gSub">${item.file.type.replace("image/","").toUpperCase()} • ${bytesToNice(item.file.size)}</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(ghost);
+
+    const r = fromItemEl.getBoundingClientRect();
+    ghost.style.width = `${Math.min(r.width, window.innerWidth - 24)}px`;
+    return ghost;
+  }
+
+  function moveGhost(x, y){
+    if (!drag.ghost) return;
+    drag.ghost.style.transform = `translate3d(${x + drag.offsetX}px, ${y + drag.offsetY}px, 0)`;
+  }
+
+  function destroyGhost(){
+    if (drag.ghost){
+      drag.ghost.remove();
+      drag.ghost = null;
+    }
+  }
+
+  function clearDropHighlights(){
+    listEl.querySelectorAll(".item.dropTarget").forEach(x => x.classList.remove("dropTarget"));
+  }
+
+  function highlightDropTargetAtPoint(x, y){
+    clearDropHighlights();
+    const el = document.elementFromPoint(x, y);
+    const row = el?.closest?.(".item");
+    if (!row || row.dataset.id === drag.id) return;
+    row.classList.add("dropTarget");
+  }
+
+  function getTargetIndexFromPoint(x, y){
+    const el = document.elementFromPoint(x, y);
+    const row = el?.closest?.(".item");
+    if (!row) return null;
+
+    const id = row.dataset.id;
+    if (!id || id === drag.id) return null;
+
+    const rect = row.getBoundingClientRect();
+    const before = y < rect.top + rect.height / 2;
+
+    const idx = items.findIndex(it => it.id === id);
+    if (idx < 0) return null;
+
+    const curIndex = items.findIndex(it => it.id === drag.id);
+    if (curIndex < 0) return null;
+
+    const insertPos = before ? idx : idx + 1;
+    let finalIndex = insertPos;
+    if (finalIndex > curIndex) finalIndex = finalIndex - 1;
+    finalIndex = Math.max(0, Math.min(items.length - 1, finalIndex));
+    return finalIndex;
+  }
+
+  // ===== AUTO-SCROLL while dragging near edges =====
+  function computeAutoScrollVelocity(){
+    // Use viewport edges (works even when list is long)
+    const y = drag.lastY;
+    const edge = 90;              // px from top/bottom where autoscroll starts
+    const maxV = 18;              // px per frame-ish (will be smoothed by RAF)
+    const top = edge;
+    const bottom = window.innerHeight - edge;
+
+    let v = 0;
+    if (y < top) {
+      const t = (top - y) / edge; // 0..1
+      v = -Math.min(maxV, 4 + t * maxV);
+    } else if (y > bottom) {
+      const t = (y - bottom) / edge;
+      v = Math.min(maxV, 4 + t * maxV);
+    }
+    return v;
+  }
+
+  function autoScrollTick(){
+    if (!drag.active) { drag.autoScrollRaf = 0; return; }
+
+    const v = computeAutoScrollVelocity();
+    drag.autoScrollV = v;
+
+    if (v !== 0){
+      window.scrollBy(0, v);
+
+      // After scroll, positions changed; re-run reorder detection using latest pointer position
+      const targetIndex = getTargetIndexFromPoint(drag.lastX, drag.lastY);
+      if (targetIndex != null){
+        const before = capturePositions();
+        const changed = reorderById(drag.id, targetIndex);
+        if (changed){
+          render({ preserveStatus: true });
+          playFLIP(before);
+        }
+      }
+
+      // Keep drop highlight aligned
+      highlightDropTargetAtPoint(drag.lastX, drag.lastY);
+    }
+
+    drag.autoScrollRaf = requestAnimationFrame(autoScrollTick);
+  }
+
+  function startAutoScroll(){
+    if (drag.autoScrollRaf) return;
+    drag.autoScrollRaf = requestAnimationFrame(autoScrollTick);
+  }
+
+  function stopAutoScroll(){
+    if (drag.autoScrollRaf){
+      cancelAnimationFrame(drag.autoScrollRaf);
+      drag.autoScrollRaf = 0;
+    }
+    drag.autoScrollV = 0;
+  }
+
+  // ===== Pointer drag reorder =====
+  function onHandlePointerDown(e){
+    const handle = e.currentTarget;
+    const id = handle.dataset.id;
+    if (!id) return;
+
+    const itemEl = handle.closest(".item");
+    const item = items.find(x => x.id === id);
+    if (!itemEl || !item) return;
+
+    drag.active = true;
+    drag.id = id;
+    drag.pointerId = e.pointerId;
+    drag.lastX = e.clientX;
+    drag.lastY = e.clientY;
+
+    handle.setPointerCapture?.(e.pointerId);
+
+    drag.ghost = createGhost(itemEl, item);
+    moveGhost(e.clientX, e.clientY);
+
+    itemEl.classList.add("drag-source");
+    setStatus("Reordering…", "");
+
+    startAutoScroll();
+    e.preventDefault();
+  }
+
+  function onGlobalPointerMove(e){
+    if (!drag.active) return;
+    if (drag.pointerId !== null && e.pointerId !== drag.pointerId) return;
+
+    drag.lastX = e.clientX;
+    drag.lastY = e.clientY;
+
+    if (drag.raf) return;
+    drag.raf = requestAnimationFrame(() => {
+      drag.raf = 0;
+
+      moveGhost(drag.lastX, drag.lastY);
+      highlightDropTargetAtPoint(drag.lastX, drag.lastY);
+
+      const targetIndex = getTargetIndexFromPoint(drag.lastX, drag.lastY);
+      if (targetIndex == null) return;
+
+      const before = capturePositions();
+      const changed = reorderById(drag.id, targetIndex);
+      if (!changed) return;
+
+      render({ preserveStatus: true });
+      playFLIP(before);
+    });
+
+    e.preventDefault?.();
+  }
+
+  function endDrag(){
+    if (!drag.active) return;
+
+    drag.active = false;
+    drag.pointerId = null;
+    drag.id = null;
+
+    if (drag.raf){
+      cancelAnimationFrame(drag.raf);
+      drag.raf = 0;
+    }
+
+    stopAutoScroll();
+    destroyGhost();
+    clearDropHighlights();
+
+    render({ preserveStatus: true });
+    setStatus("Reordered.", "ok");
+  }
+
+  window.addEventListener("pointermove", onGlobalPointerMove, { passive: false });
+  window.addEventListener("pointerup", endDrag, { passive: true });
+  window.addEventListener("pointercancel", endDrag, { passive: true });
+
+  function render(opts = {}){
+    const preserveStatus = !!opts.preserveStatus;
+    if (!preserveStatus) setStatus("");
+
     listEl.innerHTML = "";
-    items.forEach((it, idx) => {
+    items.forEach((it) => {
       const row = document.createElement("div");
       row.className = "item";
+      row.dataset.id = it.id;
+
+      if (drag.active && drag.id === it.id) row.classList.add("drag-source");
+
+      const handle = document.createElement("div");
+      handle.className = "handle";
+      handle.title = "Drag to reorder";
+      handle.dataset.id = it.id;
+      handle.innerHTML = `<div class="dots" aria-hidden="true"></div>`;
+      handle.addEventListener("pointerdown", onHandlePointerDown);
 
       const img = document.createElement("img");
       img.className = "thumb";
@@ -656,39 +944,29 @@
 
       const meta = document.createElement("div");
       meta.className = "meta";
+
       const name = document.createElement("div");
       name.className = "name";
       name.textContent = it.file.name;
+
       const small = document.createElement("div");
       small.className = "small";
       small.textContent = `${it.file.type.replace("image/","").toUpperCase()} • ${bytesToNice(it.file.size)}`;
+
       meta.appendChild(name);
       meta.appendChild(small);
 
       const actions = document.createElement("div");
       actions.className = "actions";
 
-      const up = document.createElement("button");
-      up.className = "btn";
-      up.textContent = "▲";
-      up.title = "Move up";
-      up.onclick = () => moveItem(idx, -1);
-
-      const down = document.createElement("button");
-      down.className = "btn";
-      down.textContent = "▼";
-      down.title = "Move down";
-      down.onclick = () => moveItem(idx, +1);
-
       const del = document.createElement("button");
       del.className = "btn danger";
       del.textContent = "Remove";
-      del.onclick = () => removeItem(idx);
+      del.onclick = () => removeItem(it.id);
 
-      actions.appendChild(up);
-      actions.appendChild(down);
       actions.appendChild(del);
 
+      row.appendChild(handle);
       row.appendChild(img);
       row.appendChild(meta);
       row.appendChild(actions);
@@ -699,11 +977,10 @@
     const hasItems = items.length > 0;
     makeBtn.disabled = !hasItems;
     clearBtn.disabled = !hasItems;
-
     updateBadges();
   }
 
-  // Drag/drop events
+  // Upload drag/drop
   ["dragenter","dragover"].forEach(evt => {
     drop.addEventListener(evt, e => {
       e.preventDefault(); e.stopPropagation();
@@ -725,6 +1002,7 @@
 
   clearBtn.addEventListener("click", clearAll);
 
+  // ===== PDF generation =====
   function getPageDims(size, orient){
     const A4 = { w: 595.28, h: 841.89 };
     const LETTER = { w: 612, h: 792 };
@@ -748,7 +1026,6 @@
     canvas.height = img.naturalHeight;
     const ctx = canvas.getContext("2d", { alpha: true });
 
-    // PNG -> JPEG: fill white to avoid black transparency
     if (mime === "image/jpeg") {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0,0,canvas.width,canvas.height);
