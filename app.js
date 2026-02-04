@@ -39,6 +39,12 @@
 
   const countBadge = document.getElementById('countBadge');
   const pageHint = document.getElementById('pageHint');
+  const dropTitle = document.getElementById("dropTitle");
+
+  const isMobile = matchMedia("(pointer: coarse)").matches;
+  if (isMobile && dropTitle){
+    dropTitle.textContent = "Tap to add images";
+  }
   const aboutBtn = document.getElementById('aboutBtn');
   const aboutModal = document.getElementById('aboutModal');
   const aboutClose = document.getElementById('aboutClose');
