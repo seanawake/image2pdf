@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Image → PDF (Drag & Drop)</title>
+
+  <!-- jsPDF (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <style>
+    /* ====== GLOBAL FIXES ====== */
+    *, *::before, *::after { box-sizing: border-box; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    /* ====== THEME TOKENS (Modern SaaS) ====== */
+    :root{
+      --radius: 18px;
+      --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+      /* Default = dark */
+      --bg0:#070a10;
+      --bg1:#0b1020;
+      --panel: rgba(18, 24, 38, .72);
+      --panel2: rgba(12, 16, 27, .66);
+      --text:#eaf1ff;
+      --muted:#aab6cc;
+      --border: rgba(90, 110, 150, .28);
+      --borderStrong: rgba(90, 110, 150, .42);
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+
+      --accent:#5aa9ff;
+      --accent2:#7bdbff;
+      --danger:#ff5a7a;
+      --ok:#35d07f;
+
+      --glass: blur(10px);
+      --pagePad: 16px;
+
+      --toggleBg: rgba(255,255,255,.06);
+      --toggleBorder: rgba(255,255,255,.10);
+      --toggleActive: rgba(255,255,255,.14);
+      --toggleIcon: rgba(234,241,255,.75);
+      --toggleIconActive: rgba(234,241,255,1);
+    }
+
+    html[data-theme="light"]{
+      --bg0:#f6f8ff;
+      --bg1:#eef3ff;
+      --panel: rgba(255,255,255,.72);
+      --panel2: rgba(255,255,255,.62);
+      --text:#0c1324;
+      --muted:#4b5b78;
+      --border: rgba(20, 35, 70, .14);
+      --borderStrong: rgba(20, 35, 70, .22);
+      --shadow: 0 18px 60px rgba(15, 30, 60, .12);
+
+      --toggleBg: rgba(20,35,70,.06);
+      --toggleBorder: rgba(20,35,70,.14);
+      --toggleActive: rgba(20,35,70,.12);
+      --toggleIcon: rgba(12,19,36,.60);
+      --toggleIconActive: rgba(12,19,36,1);
+    }
+
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      background:
+        radial-gradient(1200px 700px at 15% -10%, color-mix(in oklab, var(--accent) 26%, transparent), transparent 55%),
+        radial-gradient(900px 600px at 100% 10%, color-mix(in oklab, var(--accent2) 18%, transparent), transparent 55%),
+        radial-gradient(1000px 700px at 40% 120%, color-mix(in oklab, var(--ok) 10%, transparent), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background .25s ease, color .25s ease;
+    }
+
+    .wrap{ max-width:1120px; margin:28px auto; padding:0 var(--pagePad); }
+
+    /* ====== TOP BAR ====== */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:14px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+      min-width:0;
+    }
+    h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:.2px;
+      line-height:1.2;
+    }
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .rightTools{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex: 0 0 auto;
+    }
+
+    .badge{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: var(--panel);
+      backdrop-filter: var(--glass);
+      -webkit-backdrop-filter: var(--glass);
+      font-size:12px;
+      white-space:nowrap;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+
+    /* ====== THEME TOGGLE (like your screenshot) ====== */
+    .themeToggle{
+      display:flex;
+      align-items:center;
+      gap:0;
+      padding:4px;
+      border-radius:999px;
+      border:1px solid var(--toggleBorder);
+      background: var(--toggleBg);
+      backdrop-filter: var(--glass);
+      -webkit-backdrop-filter: var(--glass);
+      box-shadow: 0 12px 30px rgba(0,0,0,.10);
+    }
+    .toggleBtn{
+      width:40px;
+      height:34px;
+      border:0;
+      border-radius:999px;
+      background: transparent;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition: background .18s ease, transform .18s ease;
+      color: var(--toggleIcon);
+    }
+    .toggleBtn svg{ width:18px; height:18px; }
+    .toggleBtn[aria-pressed="true"]{
+      background: var(--toggleActive);
+      color: var(--toggleIconActive);
+    }
+    .toggleBtn:hover{ transform: translateY(-1px); }
+    .toggleBtn:active{ transform: translateY(0px); }
+
+    /* ====== LAYOUT ====== */
+    .grid{
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap:16px;
+    }
+    .grid > *{ min-width:0; }
+
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      .topbar{ flex-direction:column; align-items:flex-start; }
+      .rightTools{ width:100%; justify-content:space-between; }
+      .badge{ flex: 0 0 auto; }
+    }
+
+    /* ====== CARDS ====== */
+    .card{
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+      overflow:hidden;
+      transition: background .25s ease, border-color .25s ease, box-shadow .25s ease;
+      backdrop-filter: var(--glass);
+      -webkit-backdrop-filter: var(--glass);
+      position:relative;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border-radius:var(--radius);
+      pointer-events:none;
+      background: radial-gradient(800px 220px at 15% 0%, color-mix(in oklab, var(--accent) 12%, transparent), transparent 60%);
+      opacity:.7;
+    }
+    .card > *{ position:relative; z-index:1; }
+
+    .sectionTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin:2px 0 10px;
+    }
+    .sectionTitle h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+
+    /* ====== DROPZONE ====== */
+    .drop{
+      border:2px dashed color-mix(in oklab, var(--accent) 55%, transparent);
+      border-radius:var(--radius);
+      padding:18px;
+      min-height:200px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      transition:.15s ease;
+      background: color-mix(in oklab, var(--accent) 6%, transparent);
+      user-select:none;
+      position:relative;
+      overflow:hidden;
+    }
+    .drop::after{
+      content:"";
+      position:absolute;
+      inset:-70px;
+      background: radial-gradient(520px 260px at 22% 30%, color-mix(in oklab, var(--accent2) 20%, transparent), transparent 60%);
+      pointer-events:none;
+      opacity:.75;
+      transform: rotate(-8deg);
+    }
+    .drop > div{ position:relative; z-index:1; }
+    .drop.dragover{
+      border-color: color-mix(in oklab, var(--accent2) 85%, transparent);
+      background: color-mix(in oklab, var(--accent) 10%, transparent);
+      transform: translateY(-1px);
+    }
+
+    /* ====== CONTROLS ====== */
+    .muted{ color:var(--muted); font-size:13px; line-height:1.45; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    .btn{
+      border:1px solid var(--borderStrong);
+      background: color-mix(in oklab, var(--panel) 75%, transparent);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      transition: .15s ease;
+      font-weight:800;
+      letter-spacing:.15px;
+      min-height:42px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      backdrop-filter: var(--glass);
+      -webkit-backdrop-filter: var(--glass);
+    }
+    .btn:hover{ border-color: color-mix(in oklab, var(--accent) 55%, var(--borderStrong)); transform: translateY(-1px); }
+    .btn:active{ transform: translateY(0px); }
+    .btn.primary{
+      background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 18%, transparent), color-mix(in oklab, var(--accent) 10%, transparent));
+      border-color: color-mix(in oklab, var(--accent) 55%, var(--borderStrong));
+    }
+    .btn.danger{
+      background: linear-gradient(180deg, color-mix(in oklab, var(--danger) 14%, transparent), color-mix(in oklab, var(--danger) 7%, transparent));
+      border-color: color-mix(in oklab, var(--danger) 55%, var(--borderStrong));
+    }
+    .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+
+    input[type="file"]{ display:none; }
+
+    .field{ display:flex; flex-direction:column; gap:6px; margin-top:12px; min-width:0; }
+    .field label{ font-size:12px; color:var(--muted); }
+
+    input[type="text"], select, input[type="range"]{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--borderStrong);
+      background: color-mix(in oklab, var(--panel) 70%, transparent);
+      color: var(--text);
+      outline:none;
+      transition: border-color .18s ease, background .18s ease;
+    }
+    input[type="text"]::placeholder{ color: color-mix(in oklab, var(--muted) 70%, transparent); }
+    input[type="text"]:focus, select:focus, input[type="range"]:focus{
+      border-color: color-mix(in oklab, var(--accent) 65%, var(--borderStrong));
+    }
+
+    .split{
+      display:grid;
+      grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+    @media (max-width: 520px){ .split{ grid-template-columns: 1fr; } }
+
+    .qualityRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .pill{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: color-mix(in oklab, var(--panel) 70%, transparent);
+      color: var(--muted);
+      flex: 0 0 auto;
+      white-space:nowrap;
+    }
+
+    .checkrow{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      margin-top:10px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: color-mix(in oklab, var(--panel) 60%, transparent);
+    }
+    .checkrow input{ margin-top:2px; transform:scale(1.15); }
+
+    /* ====== FILE LIST ====== */
+    .list{ margin-top:14px; display:flex; flex-direction:column; gap:10px; }
+
+    .item{
+      display:grid;
+      grid-template-columns: 76px minmax(0,1fr) auto;
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background: color-mix(in oklab, var(--panel) 55%, transparent);
+      overflow:hidden;
+    }
+    .thumb{
+      width:76px; height:56px;
+      border-radius:12px;
+      object-fit:cover;
+      border:1px solid color-mix(in oklab, var(--borderStrong) 70%, transparent);
+      background: color-mix(in oklab, var(--panel) 55%, transparent);
+    }
+    .meta{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .name{
+      font-size:13px;
+      font-weight:900;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .small{ font-size:12px; color:var(--muted); }
+    .actions{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+
+    @media (max-width: 560px){
+      .item{
+        grid-template-columns: 64px minmax(0,1fr);
+        grid-template-rows: auto auto;
+        align-items:start;
+      }
+      .thumb{ width:64px; height:64px; }
+      .actions{ grid-column: 1 / -1; justify-content:flex-start; }
+    }
+
+    .status{ margin-top:10px; font-size:13px; color:var(--muted); min-height:18px; }
+    .ok{ color: var(--ok); }
+    .bad{ color: var(--danger); }
+    .hint{ margin-top:10px; font-size:12px; color:var(--muted); line-height:1.45; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <h1>Image → PDF Converter</h1>
+        <p class="sub">Drop PNG/JPG files, reorder pages, export a multi-page PDF — all inside your browser.</p>
+      </div>
+
+      <div class="rightTools">
+        <!-- Theme toggle -->
+        <div class="themeToggle" role="group" aria-label="Theme toggle">
+          <button id="btnDark" class="toggleBtn" aria-pressed="true" title="Dark">
+            <!-- Moon -->
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M21 14.5c-1.4.9-3.1 1.4-4.9 1.4A8.6 8.6 0 0 1 7.5 7.9c0-1.8.5-3.5 1.4-4.9A9.5 9.5 0 1 0 21 14.5Z"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button id="btnLight" class="toggleBtn" aria-pressed="false" title="Light">
+            <!-- Sun -->
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="badge">
+          <span id="countBadge">0 images</span>
+          <span style="opacity:.7;">•</span>
+          <span>Client-side</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="card">
+        <div class="sectionTitle">
+          <h2>Input</h2>
+        </div>
+
+        <div id="drop" class="drop">
+          <div>
+            <div style="font-weight:950; font-size:16px; margin-bottom:6px;">Drag & drop images here</div>
+            <div class="muted">PNG/JPG supported. Multiple images = multiple PDF pages.</div>
+
+            <div style="height:14px"></div>
+
+            <div class="row" style="justify-content:center;">
+              <label class="btn" for="fileInput">📁 Choose images</label>
+              <button id="clearBtn" class="btn danger" disabled>🗑 Clear</button>
+            </div>
+
+            <input id="fileInput" type="file" accept="image/png,image/jpeg" multiple />
+          </div>
+        </div>
+
+        <div class="list" id="list"></div>
+
+        <div class="status" id="status"></div>
+        <div class="hint">
+          If you drop huge camera photos (6K/8K), the browser can run out of memory. Resize first or convert in smaller batches.
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card">
+        <div class="sectionTitle">
+          <h2>PDF Settings</h2>
+          <span class="pill" id="pageHint">A4 • Auto</span>
+        </div>
+
+        <div class="field">
+          <label>Output PDF name</label>
+          <input id="pdfName" type="text" value="images.pdf" placeholder="images.pdf" />
+        </div>
+
+        <div class="split">
+          <div class="field" style="margin-top:0;">
+            <label>Page size</label>
+            <select id="pageSize">
+              <option value="a4">A4</option>
+              <option value="letter">US Letter</option>
+            </select>
+          </div>
+
+          <div class="field" style="margin-top:0;">
+            <label>Orientation</label>
+            <select id="orientation">
+              <option value="auto">Auto (per image)</option>
+              <option value="p">Portrait</option>
+              <option value="l">Landscape</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="qualityRow">
+            <label style="margin:0;">JPEG quality</label>
+            <span class="pill" id="qualityLabel">0.92</span>
+          </div>
+          <input id="quality" type="range" min="0.4" max="1" step="0.02" value="0.92" />
+          <div class="muted">Lower = smaller PDF, higher = better quality.</div>
+        </div>
+
+        <div class="checkrow">
+          <input id="keepPng" type="checkbox" />
+          <div style="min-width:0;">
+            <div style="font-weight:900; font-size:13px;">Keep PNG as PNG</div>
+            <div class="muted" style="font-size:12px;">Preserves transparency but often increases PDF size.</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:14px;">
+          <button id="makeBtn" class="btn primary" disabled>⚡ Convert to PDF</button>
+        </div>
+
+        <div class="muted" style="margin-top:12px;">
+          Page order = the list on the left. Use ▲/▼ to reorder.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const { jsPDF } = window.jspdf;
+
+  // ===== THEME (remember locally) =====
+  const THEME_KEY = "img2pdf_theme";
+  const btnDark = document.getElementById("btnDark");
+  const btnLight = document.getElementById("btnLight");
+
+  function applyTheme(theme){
+    document.documentElement.setAttribute("data-theme", theme);
+    const isDark = theme === "dark";
+    btnDark.setAttribute("aria-pressed", String(isDark));
+    btnLight.setAttribute("aria-pressed", String(!isDark));
+  }
+
+  function initTheme(){
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === "dark" || saved === "light"){
+      applyTheme(saved);
+      return;
+    }
+    // No saved preference -> follow system
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    applyTheme(prefersDark ? "dark" : "light");
+  }
+
+  btnDark.addEventListener("click", () => {
+    localStorage.setItem(THEME_KEY, "dark");
+    applyTheme("dark");
+  });
+
+  btnLight.addEventListener("click", () => {
+    localStorage.setItem(THEME_KEY, "light");
+    applyTheme("light");
+  });
+
+  initTheme();
+
+  // ===== APP LOGIC =====
+  const drop = document.getElementById('drop');
+  const fileInput = document.getElementById('fileInput');
+  const listEl = document.getElementById('list');
+  const statusEl = document.getElementById('status');
+
+  const makeBtn = document.getElementById('makeBtn');
+  const clearBtn = document.getElementById('clearBtn');
+
+  const pdfNameEl = document.getElementById('pdfName');
+  const pageSizeEl = document.getElementById('pageSize');
+  const orientationEl = document.getElementById('orientation');
+  const qualityEl = document.getElementById('quality');
+  const qualityLabel = document.getElementById('qualityLabel');
+  const keepPngEl = document.getElementById('keepPng');
+
+  const countBadge = document.getElementById('countBadge');
+  const pageHint = document.getElementById('pageHint');
+
+  let items = []; // { file, url }
+
+  function setStatus(msg, kind="") {
+    statusEl.className = "status " + kind;
+    statusEl.textContent = msg || "";
+  }
+
+  function bytesToNice(n){
+    const u = ["B","KB","MB","GB"];
+    let i=0; let x=n;
+    while(x>=1024 && i<u.length-1){ x/=1024; i++; }
+    return `${x.toFixed(x<10 && i>0 ? 2 : 0)} ${u[i]}`;
+  }
+
+  function updateBadges(){
+    const n = items.length;
+    countBadge.textContent = `${n} image${n===1?"":"s"}`;
+
+    const sizeTxt = (pageSizeEl.value === "letter") ? "Letter" : "A4";
+    const o = orientationEl.value;
+    const oTxt = (o === "auto") ? "Auto" : (o === "p" ? "Portrait" : "Landscape");
+    pageHint.textContent = `${sizeTxt} • ${oTxt}`;
+  }
+
+  qualityEl.addEventListener('input', () => {
+    qualityLabel.textContent = Number(qualityEl.value).toFixed(2);
+  });
+
+  pageSizeEl.addEventListener('change', updateBadges);
+  orientationEl.addEventListener('change', updateBadges);
+
+  function addFiles(fileList){
+    const files = Array.from(fileList || []).filter(f =>
+      f && (f.type === "image/png" || f.type === "image/jpeg")
+    );
+
+    if (!files.length) {
+      setStatus("No valid PNG/JPG files detected.", "bad");
+      return;
+    }
+
+    for (const f of files) {
+      const url = URL.createObjectURL(f);
+      items.push({ file: f, url });
+    }
+    render();
+    setStatus(`${files.length} image(s) added.`, "ok");
+  }
+
+  function clearAll(){
+    for (const it of items) URL.revokeObjectURL(it.url);
+    items = [];
+    render();
+    setStatus("");
+  }
+
+  function moveItem(idx, dir){
+    const j = idx + dir;
+    if (j < 0 || j >= items.length) return;
+    [items[idx], items[j]] = [items[j], items[idx]];
+    render();
+  }
+
+  function removeItem(idx){
+    URL.revokeObjectURL(items[idx].url);
+    items.splice(idx, 1);
+    render();
+  }
+
+  function render(){
+    listEl.innerHTML = "";
+    items.forEach((it, idx) => {
+      const row = document.createElement("div");
+      row.className = "item";
+
+      const img = document.createElement("img");
+      img.className = "thumb";
+      img.src = it.url;
+      img.alt = it.file.name;
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = it.file.name;
+      const small = document.createElement("div");
+      small.className = "small";
+      small.textContent = `${it.file.type.replace("image/","").toUpperCase()} • ${bytesToNice(it.file.size)}`;
+      meta.appendChild(name);
+      meta.appendChild(small);
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const up = document.createElement("button");
+      up.className = "btn";
+      up.textContent = "▲";
+      up.title = "Move up";
+      up.onclick = () => moveItem(idx, -1);
+
+      const down = document.createElement("button");
+      down.className = "btn";
+      down.textContent = "▼";
+      down.title = "Move down";
+      down.onclick = () => moveItem(idx, +1);
+
+      const del = document.createElement("button");
+      del.className = "btn danger";
+      del.textContent = "Remove";
+      del.onclick = () => removeItem(idx);
+
+      actions.appendChild(up);
+      actions.appendChild(down);
+      actions.appendChild(del);
+
+      row.appendChild(img);
+      row.appendChild(meta);
+      row.appendChild(actions);
+
+      listEl.appendChild(row);
+    });
+
+    const hasItems = items.length > 0;
+    makeBtn.disabled = !hasItems;
+    clearBtn.disabled = !hasItems;
+
+    updateBadges();
+  }
+
+  // Drag/drop events
+  ["dragenter","dragover"].forEach(evt => {
+    drop.addEventListener(evt, e => {
+      e.preventDefault(); e.stopPropagation();
+      drop.classList.add("dragover");
+    });
+  });
+  ["dragleave","drop"].forEach(evt => {
+    drop.addEventListener(evt, e => {
+      e.preventDefault(); e.stopPropagation();
+      drop.classList.remove("dragover");
+    });
+  });
+  drop.addEventListener("drop", e => addFiles(e.dataTransfer.files));
+
+  fileInput.addEventListener("change", e => {
+    addFiles(e.target.files);
+    fileInput.value = "";
+  });
+
+  clearBtn.addEventListener("click", clearAll);
+
+  function getPageDims(size, orient){
+    const A4 = { w: 595.28, h: 841.89 };
+    const LETTER = { w: 612, h: 792 };
+    let p = (size === "letter") ? LETTER : A4;
+    if (orient === "l") return { w: p.h, h: p.w };
+    return { w: p.w, h: p.h };
+  }
+
+  function loadImage(url){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
+  function imageToDataURL(img, mime, quality){
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    // PNG -> JPEG: fill white to avoid black transparency
+    if (mime === "image/jpeg") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+    }
+    ctx.drawImage(img, 0, 0);
+
+    if (mime === "image/png") return canvas.toDataURL("image/png");
+    return canvas.toDataURL("image/jpeg", quality);
+  }
+
+  makeBtn.addEventListener("click", async () => {
+    if (!items.length) return;
+
+    setStatus("Generating PDF…", "");
+    makeBtn.disabled = true;
+
+    try {
+      const margin = 24;
+      const size = pageSizeEl.value;
+      const orientChoice = orientationEl.value; // auto | p | l
+      const jpgQ = Number(qualityEl.value);
+      const keepPng = keepPngEl.checked;
+
+      const baseOrient = (orientChoice === "l") ? "landscape" : "portrait";
+      const pdf = new jsPDF({ unit: "pt", format: size, orientation: baseOrient });
+
+      let firstPageUsed = false;
+
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        const img = await loadImage(it.url);
+
+        const imgW = img.naturalWidth;
+        const imgH = img.naturalHeight;
+
+        let pageOrient = "p";
+        if (orientChoice === "auto") pageOrient = (imgW > imgH) ? "l" : "p";
+        else pageOrient = orientChoice;
+
+        const page = getPageDims(size, pageOrient);
+        const pageW = page.w, pageH = page.h;
+
+        if (!firstPageUsed) {
+          const curW = pdf.internal.pageSize.getWidth();
+          const curH = pdf.internal.pageSize.getHeight();
+          const needLandscape = pageOrient === "l";
+          const isLandscape = curW > curH;
+
+          if (needLandscape !== isLandscape) {
+            pdf.addPage([pageW, pageH], needLandscape ? "landscape" : "portrait");
+            pdf.deletePage(1);
+          }
+          firstPageUsed = true;
+        } else {
+          pdf.addPage([pageW, pageH], pageOrient === "l" ? "landscape" : "portrait");
+        }
+
+        const maxW = pageW - margin * 2;
+        const maxH = pageH - margin * 2;
+        const scale = Math.min(maxW / imgW, maxH / imgH);
+
+        const drawW = imgW * scale;
+        const drawH = imgH * scale;
+        const x = (pageW - drawW) / 2;
+        const y = (pageH - drawH) / 2;
+
+        const usePng = keepPng && it.file.type === "image/png";
+        const mime = usePng ? "image/png" : "image/jpeg";
+        const dataUrl = imageToDataURL(img, mime, jpgQ);
+
+        pdf.addImage(
+          dataUrl,
+          usePng ? "PNG" : "JPEG",
+          x, y, drawW, drawH,
+          undefined,
+          "FAST"
+        );
+      }
+
+      let outName = (pdfNameEl.value || "images.pdf").trim();
+      if (!outName.toLowerCase().endsWith(".pdf")) outName += ".pdf";
+
+      pdf.save(outName);
+      setStatus(`Done: ${outName}`, "ok");
+    } catch (err) {
+      console.error(err);
+      setStatus("Failed to generate PDF. Try smaller images or fewer at a time.", "bad");
+    } finally {
+      makeBtn.disabled = (items.length === 0);
+    }
+  });
+
+  // Init
+  qualityLabel.textContent = Number(qualityEl.value).toFixed(2);
+  updateBadges();
+  render();
+</script>
+</body>
+</html>
