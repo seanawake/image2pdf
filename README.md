@@ -67,3 +67,8 @@ python -m http.server 8080
 ### Note
 
 This project is MIT licensed. If you reuse it, please keep attribution and consider linking back to this repo.
+
+## License
+MIT — see [LICENSE](LICENSE)
+
+
