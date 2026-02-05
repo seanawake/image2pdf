@@ -103,7 +103,11 @@
       left:50%;
       width:100vw;
       transform: translateX(-50%);
-      background: linear-gradient(180deg, color-mix(in oklab, var(--bg0) 85%, transparent), transparent);
+      background: linear-gradient(180deg,
+        transparent 0%,
+        color-mix(in oklab, var(--bg0) 70%, transparent) 40%,
+        transparent 100%
+      );
       border-bottom: 1px solid var(--border);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
@@ -160,11 +164,11 @@
     }
     .grid > *{ min-width:0; }
 
-    @media (max-width: 980px){
-      .grid{ grid-template-columns: 1fr; }
-      .topbar{ flex-direction:column; align-items:flex-start; }
-      .rightTools{ width:100%; justify-content:space-between; }
-    }
+@media (max-width: 980px){
+  .grid{ grid-template-columns: 1fr; }
+  .topbar{ flex-direction:column; align-items:flex-start; padding: 6px 0; margin-bottom: 8px; }
+  .rightTools{ width:100%; justify-content:space-between; }
+}
 
     .card{
       background: linear-gradient(180deg, var(--panel), var(--panel2));
