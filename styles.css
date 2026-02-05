@@ -89,6 +89,26 @@
       justify-content:space-between;
       gap:14px;
       margin-bottom:14px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 0;
+      isolation: isolate;
+    }
+    .topbar::before{
+      content:"";
+      position:absolute;
+      top:0;
+      bottom:0;
+      left:50%;
+      width:100vw;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, color-mix(in oklab, var(--bg0) 85%, transparent), transparent);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      pointer-events:none;
+      z-index:-1;
     }
     .title{ display:flex; flex-direction:column; gap:5px; min-width:0; }
     h1{ margin:0; font-size:20px; letter-spacing:.2px; line-height:1.2; }
