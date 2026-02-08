@@ -179,6 +179,45 @@
                 </div>
               </div>
             </div>
+
+            <div class="setting-group setting-group-page-num">
+              <div class="checkrow">
+                <input id="pageNumbers" type="checkbox" />
+                <div style="min-width:0;">
+                  <div style="font-weight:900; font-size:13px;">Enable page numbers</div>
+                  <div class="muted" style="font-size:12px;">Shown at bottom of each page.</div>
+                </div>
+              </div>
+              <div class="field page-num-align-wrap" id="pageNumAlignGroup" hidden>
+                <div class="qualityRow">
+                  <label style="margin:0;">Page Number Alignment</label>
+                  <span class="pill is-empty" aria-hidden="true">&nbsp;</span>
+                </div>
+                <div class="segToggle segToggle-icon" role="group" aria-label="Page Number Alignment">
+                  <button type="button" class="segBtn" data-page-num-align="left" aria-pressed="false" aria-label="Align left" title="Align left">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M4 7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M4 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M4 17h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="segBtn" data-page-num-align="center" aria-pressed="true" aria-label="Align center" title="Align center">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M5 7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M7 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M6 17h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="segBtn" data-page-num-align="right" aria-pressed="false" aria-label="Align right" title="Align right">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M6 7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M10 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M7 17h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </details>
 
@@ -188,7 +227,7 @@
       <div class="footer-title">Fast. Private. Local.</div>
       <div class="footer-sub">No uploads. No accounts. Just drag, reorder, export.</div>
       <div class="footer-sub">Runs 100% client-side • Works offline after first load • No tracking</div>
-      <div class="footer-sub">Made by Rajesh Acharya.</div>
+      <div class="footer-sub">Made by <strong>Rajesh Acharya.</strong></div>
     </footer>
   </div>
 
@@ -202,33 +241,89 @@
         <p class="modal-section">ABOUT</p>
         <p class="modal-lead">Built for privacy.</p>
         <p>
-          This Image &#8594; PDF converter runs entirely in your browser. No uploads, no accounts, no tracking.
-          Your files stay on your device from start to finish.
+          This Image &#8594; PDF converter runs entirely in your browser. No uploads, no accounts, no tracking -
+          your files stay on your device from start to finish.
         </p>
 
         <p class="modal-section">FEATURES</p>
         <ul class="feature-list">
-          <li>Add PNG/JPG (drag & drop on desktop)</li>
-          <li>Reorder pages easily</li>
-          <li>Multi-page PDF export in your chosen order</li>
+          <li>Add PNG/JPG images (drag &amp; drop on desktop)</li>
+          <li>Reorder pages before export</li>
+          <li>Export a multi-page PDF in your chosen order</li>
           <li>A4 / US Letter + Auto / Portrait / Landscape</li>
-          <li>Margins slider (0&ndash;25mm)</li>
+          <li>Margins (0&ndash;25 mm)</li>
           <li>Fit mode: Fit (no crop) / Fill (crop)</li>
-          <li>JPEG Quality slider (smaller file &#8596; sharper pages)</li>
-          <li>Optional: Keep PNG as PNG (preserves transparency; larger files)</li>
+          <li>JPEG quality control</li>
+          <li>Optional: Keep PNG as PNG (preserves transparency, larger files)</li>
         </ul>
 
         <details class="more-details">
           <summary>More details</summary>
           <div class="more-details-body">
-            <p class="modal-section">PRIVACY GUARANTEE</p>
+            <p class="modal-section">PRIVACY DETAILS</p>
             <ul class="feature-list">
-              <li>100% client-side processing</li>
+              <li>100% client-side processing (no server)</li>
               <li>Nothing is uploaded anywhere</li>
               <li>Works offline after first load (cached by your browser)</li>
             </ul>
+            <p class="modal-section">NOTES</p>
+            <ul class="feature-list">
+              <li>Mobile browsers do not support drag-reorder reliably - use the arrow buttons</li>
+              <li>"JPEG quality" only affects JPEG output (PNGs are unchanged unless converted)</li>
+              <li>"Keep PNG as PNG" can increase PDF size significantly</li>
+            </ul>
+            <p class="modal-section">LIMITS</p>
+            <ul class="feature-list">
+              <li>Mobile upload limits: up to 100 images, 200 MB total, 25 MB per image</li>
+              <li>Desktop upload limits: up to 300 images, 1024 MB total, 50 MB per image</li>
+              <li>If limits are exceeded, extra files are skipped and a warning is shown</li>
+              <li>Very large images / many pages may be slow on low-RAM devices</li>
+            </ul>
           </div>
         </details>
+      </div>
+    </div>
+  </div>
+
+  <div id="noteModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="noteModalTitle">
+      <div class="modal-header">
+        <h2 id="noteModalTitle">Image text</h2>
+        <button id="noteClose" class="modal-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="note-target" id="noteTarget"></div>
+
+        <div class="field note-field">
+          <div class="note-row">
+            <label for="noteTitle">Title</label>
+            <span class="counter" id="noteTitleCount">0/80</span>
+          </div>
+          <input id="noteTitle" type="text" maxlength="80" placeholder="Title" />
+        </div>
+
+        <div class="field note-field">
+          <div class="note-row">
+            <label for="noteSubtitle">Subtitle</label>
+            <span class="counter" id="noteSubtitleCount">0/140</span>
+          </div>
+          <input id="noteSubtitle" type="text" maxlength="140" placeholder="Subtitle" />
+        </div>
+
+        <div class="field note-field">
+          <div class="note-row">
+            <label for="noteBody">Paragraph</label>
+            <span class="counter" id="noteBodyCount">0/1200</span>
+          </div>
+          <textarea id="noteBody" maxlength="1200" rows="6" placeholder="Paragraph"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="noteClear" class="btn ghost" type="button">Clear</button>
+        <div class="modal-actions-right">
+          <button id="noteCancel" class="btn" type="button">Cancel</button>
+          <button id="noteSave" class="btn primary" type="button">Save</button>
+        </div>
       </div>
     </div>
   </div>
