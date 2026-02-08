@@ -2,6 +2,7 @@
 
   // ===== THEME =====
   const THEME_KEY = "img2pdf_theme";
+  const MARGIN_KEY = "img2pdf_margin_mm";
   const btnDark = document.getElementById("btnDark");
   const btnLight = document.getElementById("btnLight");
 
@@ -29,15 +30,30 @@
 
   const makeBtn = document.getElementById('makeBtn');
   const clearBtn = document.getElementById('clearBtn');
+  const progressWrap = document.getElementById('progressWrap');
+  const progressBar = document.getElementById('progressBar');
+  const resetBtn = document.getElementById('resetBtn');
+  const convertHint = document.getElementById('convertHint');
 
   const pdfNameEl = document.getElementById('pdfName');
   const pageSizeEl = document.getElementById('pageSize');
   const orientationEl = document.getElementById('orientation');
   const qualityEl = document.getElementById('quality');
   const qualityLabel = document.getElementById('qualityLabel');
+  const marginEl = document.getElementById('margin');
+  const marginLabel = document.getElementById('marginLabel');
+  const fitButtons = document.querySelectorAll('[data-fit]');
   const keepPngEl = document.getElementById('keepPng');
+  const keepPngHint = document.getElementById('keepPngHint');
+  const toast = document.getElementById('toast');
+  const toastTitle = document.getElementById('toastTitle');
+  const toastSub = document.getElementById('toastSub');
+  const toastDownload = document.getElementById('toastDownload');
+  const toastOpen = document.getElementById('toastOpen');
+  const toastClose = document.getElementById('toastClose');
 
   const countBadge = document.getElementById('countBadge');
+  const sizeBadge = document.getElementById('sizeBadge');
   const pageHint = document.getElementById('pageHint');
   const dropTitle = document.getElementById("dropTitle");
 
@@ -48,9 +64,16 @@
   const aboutBtn = document.getElementById('aboutBtn');
   const aboutModal = document.getElementById('aboutModal');
   const aboutClose = document.getElementById('aboutClose');
+  const mobileMedia = window.matchMedia("(max-width: 480px)");
 
-  let items = []; // { id, file, url }
+  let items = []; // { id, file, url, rotate }
   let nextId = 1;
+  let lastPdfUrl = null;
+  let lastPdfName = "images.pdf";
+  const makeBtnLabel = makeBtn ? makeBtn.textContent : "Convert to PDF";
+  const DEFAULT_QUALITY = 0.92;
+  const DEFAULT_MARGIN = 8;
+  let fitMode = "fit";
 
   function openAbout(){
     if (!aboutModal) return;
@@ -85,6 +108,33 @@
     }
   });
 
+  if (toastClose){
+    toastClose.addEventListener("click", hideToast);
+  }
+  if (toastDownload){
+    toastDownload.addEventListener("click", () => {
+      triggerDownload(lastPdfUrl, lastPdfName);
+    });
+  }
+  if (toastOpen){
+    toastOpen.addEventListener("click", () => {
+      if (!lastPdfUrl) return;
+      window.open(lastPdfUrl, "_blank", "noopener");
+    });
+  }
+  if (resetBtn){
+    resetBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      resetSettings();
+    });
+  }
+  if (mobileMedia?.addEventListener){
+    mobileMedia.addEventListener("change", () => render({ preserveStatus: true }));
+  } else if (mobileMedia?.addListener){
+    mobileMedia.addListener(() => render({ preserveStatus: true }));
+  }
+
   // Drag state + autoscroll state
   const drag = {
     active: false,
@@ -112,19 +162,197 @@
     return `${x.toFixed(x<10 && i>0 ? 2 : 0)} ${u[i]}`;
   }
 
+  function normalizeRotation(deg){
+    let r = Number(deg) || 0;
+    r = r % 360;
+    if (r < 0) r += 360;
+    return r;
+  }
+
+  function getRotatedDims(w, h, deg){
+    const r = normalizeRotation(deg);
+    if (r === 90 || r === 270) return { w: h, h: w };
+    return { w, h };
+  }
+
+  function getMarginMm(){
+    if (!marginEl) return 0;
+    const v = Number(marginEl.value);
+    return Number.isFinite(v) ? v : 0;
+  }
+
+  function setMarginLabel(){
+    if (!marginEl || !marginLabel) return;
+    marginLabel.textContent = `${marginEl.value} mm`;
+  }
+
+  function setQualityLabel(){
+    if (!qualityEl || !qualityLabel) return;
+    const pct = Math.round(Number(qualityEl.value) * 100);
+    qualityLabel.textContent = `${pct}%`;
+  }
+
+  function setFitMode(value){
+    fitMode = (value === "fill") ? "fill" : "fit";
+    if (fitButtons && fitButtons.length){
+      fitButtons.forEach(btn => {
+        const isActive = btn.dataset.fit === fitMode;
+        btn.setAttribute("aria-pressed", String(isActive));
+      });
+    }
+  }
+
+  function getFitMode(){
+    return fitMode;
+  }
+
+  function initMargin(){
+    if (!marginEl) return;
+    const saved = localStorage.getItem(MARGIN_KEY);
+    if (saved !== null){
+      const v = parseInt(saved, 10);
+      if (!Number.isNaN(v)){
+        const clamped = Math.max(0, Math.min(25, v));
+        marginEl.value = String(clamped);
+      }
+    }
+    setMarginLabel();
+  }
+
   function updateBadges(){
     const n = items.length;
     countBadge.textContent = `${n} image${n===1?"":"s"}`;
+    if (sizeBadge){
+      const totalBytes = items.reduce((sum, it) => sum + (it.file?.size || 0), 0);
+      const mb = totalBytes / (1024 * 1024);
+      sizeBadge.textContent = `${mb.toFixed(2)} MB`;
+    }
 
     const sizeTxt = (pageSizeEl.value === "letter") ? "Letter" : "A4";
     const o = orientationEl.value;
     const oTxt = (o === "auto") ? "Auto" : (o === "p" ? "Portrait" : "Landscape");
-    pageHint.textContent = `${sizeTxt} \u2022 ${oTxt}`;
+    const marginMm = getMarginMm();
+    const marginTxt = `${marginMm}mm`;
+    const mode = getFitMode();
+    const modeTxt = (mode === "fill") ? "Fill" : "Fit";
+    const parts = [sizeTxt, oTxt, marginTxt];
+    if (mode !== "fit") parts.push(modeTxt);
+    pageHint.textContent = parts.join(" \u2022 ");
+  }
+
+  function updateKeepPngAvailability(){
+    if (!keepPngEl) return;
+    const hasPng = items.some(it => it.file && it.file.type === "image/png");
+    keepPngEl.disabled = !hasPng;
+    if (!hasPng) keepPngEl.checked = false;
+    if (keepPngHint){
+      keepPngHint.textContent = hasPng
+        ? "Preserves transparency; larger files."
+        : "Only available when PNG files are present.";
+      keepPngHint.hidden = false;
+    }
+  }
+
+  function resetSettings(){
+    if (pageSizeEl) pageSizeEl.value = "a4";
+    if (orientationEl) orientationEl.value = "auto";
+    if (qualityEl){
+      qualityEl.value = String(DEFAULT_QUALITY);
+      setQualityLabel();
+    }
+    if (marginEl){
+      marginEl.value = String(DEFAULT_MARGIN);
+      localStorage.setItem(MARGIN_KEY, String(DEFAULT_MARGIN));
+      setMarginLabel();
+    }
+    setFitMode("fit");
+    if (keepPngEl) keepPngEl.checked = false;
+    updateKeepPngAvailability();
+    updateBadges();
+  }
+
+  function setConvertProgress(current, total){
+    if (makeBtn){
+      makeBtn.textContent = "Converting…";
+    }
+    if (progressWrap && progressBar){
+      progressWrap.classList.add("is-active");
+      const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+      progressBar.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+    }
+  }
+
+  function endConvertProgress(){
+    if (progressWrap && progressBar){
+      progressWrap.classList.remove("is-active");
+      progressBar.style.width = "0%";
+    }
+    if (makeBtn){
+      makeBtn.textContent = makeBtnLabel;
+      makeBtn.disabled = (items.length === 0);
+    }
+  }
+
+  function showToast(opts = {}){
+    if (!toast) return;
+    const title = typeof opts === "string" ? opts : (opts.title || "PDF ready");
+    const sizeText = typeof opts === "object" ? opts.sizeText : "";
+    const showDownload = typeof opts === "object" ? (opts.showDownload !== false) : true;
+
+    if (toastTitle) toastTitle.textContent = title;
+    if (toastSub){
+      toastSub.textContent = sizeText ? `Size: ${sizeText}` : "";
+      toastSub.style.display = sizeText ? "block" : "none";
+    }
+    if (toastDownload){
+      toastDownload.style.display = showDownload ? "" : "none";
+    }
+    toast.classList.add("is-open");
+    toast.setAttribute("aria-hidden", "false");
+  }
+
+  function hideToast(){
+    if (!toast) return;
+    toast.classList.remove("is-open");
+    toast.setAttribute("aria-hidden", "true");
+  }
+
+  function triggerDownload(url, name){
+    if (!url) return false;
+    try {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name || "images.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return true;
+    } catch (err){
+      console.error("Download failed:", err);
+      return false;
+    }
   }
 
   qualityEl.addEventListener('input', () => {
-    qualityLabel.textContent = Number(qualityEl.value).toFixed(2);
+    setQualityLabel();
   });
+  if (fitButtons && fitButtons.length){
+    fitButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        setFitMode(btn.dataset.fit);
+        updateBadges();
+      });
+    });
+    const pressed = Array.from(fitButtons).find(btn => btn.getAttribute("aria-pressed") === "true");
+    setFitMode(pressed?.dataset?.fit || "fit");
+  }
+  if (marginEl){
+    marginEl.addEventListener('input', () => {
+      setMarginLabel();
+      localStorage.setItem(MARGIN_KEY, marginEl.value);
+      updateBadges();
+    });
+  }
 
   pageSizeEl.addEventListener('change', updateBadges);
   orientationEl.addEventListener('change', updateBadges);
@@ -137,7 +365,7 @@
 
     for (const f of files) {
       const url = URL.createObjectURL(f);
-      items.push({ id: String(nextId++), file: f, url });
+      items.push({ id: String(nextId++), file: f, url, rotate: 0 });
     }
     render();
     setStatus(`${files.length} image(s) added.`, "ok");
@@ -156,6 +384,24 @@
     URL.revokeObjectURL(items[idx].url);
     items.splice(idx, 1);
     render();
+  }
+
+  function rotateItem(id, delta){
+    const idx = items.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    const cur = normalizeRotation(items[idx].rotate || 0);
+    items[idx].rotate = normalizeRotation(cur + delta);
+    render({ preserveStatus: true });
+  }
+
+  function moveItem(id, delta){
+    const idx = items.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    const next = idx + delta;
+    if (next < 0 || next >= items.length) return;
+    const [m] = items.splice(idx, 1);
+    items.splice(next, 0, m);
+    render({ preserveStatus: true });
   }
 
   // ===== FLIP animation (smooth swap) =====
@@ -206,14 +452,15 @@
   }
 
   function createGhost(fromItemEl, item){
+    const rot = normalizeRotation(item.rotate || 0);
     const ghost = document.createElement("div");
     ghost.className = "dragGhost";
     ghost.innerHTML = `
       <div class="ghostCard">
-        <img src="${item.url}" alt="">
+        <img src="${item.url}" alt="" style="transform: rotate(${rot}deg);">
         <div style="min-width:0;">
           <div class="gTitle">${escapeHtml(item.file.name)}</div>
-          <div class="gSub">${item.file.type.replace("image/","").toUpperCase()} â€¢ ${bytesToNice(item.file.size)}</div>
+          <div class="gSub">${item.file.type.replace("image/","").toUpperCase()} \u2022 ${bytesToNice(item.file.size)}</div>
         </div>
       </div>
     `;
@@ -417,10 +664,12 @@
     if (!preserveStatus) setStatus("");
 
     listEl.innerHTML = "";
-    items.forEach((it) => {
+    const isMobileLayout = mobileMedia?.matches;
+    items.forEach((it, idx) => {
       const row = document.createElement("div");
       row.className = "item";
       row.dataset.id = it.id;
+      if (isMobileLayout) row.classList.add("is-mobile");
 
       if (drag.active && drag.id === it.id) row.classList.add("drag-source");
 
@@ -435,6 +684,14 @@
       img.className = "thumb";
       img.src = it.url;
       img.alt = it.file.name;
+      const rot = normalizeRotation(it.rotate || 0);
+      if (rot){
+        img.style.transform = `rotate(${rot}deg)`;
+        img.style.objectFit = "contain";
+      } else {
+        img.style.transform = "";
+        img.style.objectFit = "";
+      }
 
       const meta = document.createElement("div");
       meta.className = "meta";
@@ -445,7 +702,7 @@
 
       const small = document.createElement("div");
       small.className = "small";
-      small.textContent = `${it.file.type.replace("image/","").toUpperCase()} â€¢ ${bytesToNice(it.file.size)}`;
+      small.textContent = `${it.file.type.replace("image/","").toUpperCase()} \u2022 ${bytesToNice(it.file.size)}`;
 
       meta.appendChild(name);
       meta.appendChild(small);
@@ -453,11 +710,78 @@
       const actions = document.createElement("div");
       actions.className = "actions";
 
+      const moveUp = document.createElement("button");
+      moveUp.className = "btn icon";
+      moveUp.setAttribute("aria-label", "Move up");
+      moveUp.title = "Move up";
+      moveUp.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 14l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+      moveUp.onclick = () => moveItem(it.id, -1);
+      if (idx === 0) {
+        moveUp.disabled = true;
+        if (isMobileLayout) moveUp.classList.add("is-disabled");
+      }
+
+      const moveDown = document.createElement("button");
+      moveDown.className = "btn icon";
+      moveDown.setAttribute("aria-label", "Move down");
+      moveDown.title = "Move down";
+      moveDown.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 10l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+      moveDown.onclick = () => moveItem(it.id, 1);
+      if (idx === items.length - 1) {
+        moveDown.disabled = true;
+        if (isMobileLayout) moveDown.classList.add("is-disabled");
+      }
+
+      const rotLeft = document.createElement("button");
+      rotLeft.className = "btn icon";
+      rotLeft.setAttribute("aria-label", "Rotate left");
+      rotLeft.title = "Rotate left";
+      rotLeft.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M5 9H2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 9c2.2-3 5.7-4.9 9.5-4.9A8.5 8.5 0 1 1 3.5 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+      rotLeft.onclick = () => rotateItem(it.id, -90);
+
+      const rotRight = document.createElement("button");
+      rotRight.className = "btn icon";
+      rotRight.setAttribute("aria-label", "Rotate right");
+      rotRight.title = "Rotate right";
+      rotRight.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M19 9h3V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M22 9c-2.2-3-5.7-4.9-9.5-4.9A8.5 8.5 0 1 0 20.5 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+      rotRight.onclick = () => rotateItem(it.id, 90);
+
       const del = document.createElement("button");
-      del.className = "btn danger";
-      del.textContent = "Remove";
+      del.className = "btn danger icon delBtn";
+      del.setAttribute("aria-label", "Delete");
+      del.title = "Delete";
+      del.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M9 7V5h6v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <rect x="7" y="7" width="10" height="12" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+          <path d="M10 11v5M14 11v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      `;
       del.onclick = () => removeItem(it.id);
 
+      actions.appendChild(moveUp);
+      actions.appendChild(moveDown);
+      actions.appendChild(rotLeft);
+      actions.appendChild(rotRight);
       actions.appendChild(del);
 
       row.appendChild(handle);
@@ -471,6 +795,8 @@
     const hasItems = items.length > 0;
     makeBtn.disabled = !hasItems;
     clearBtn.disabled = !hasItems;
+    if (convertHint) convertHint.hidden = hasItems;
+    updateKeepPngAvailability();
     updateBadges();
   }
 
@@ -514,7 +840,7 @@
     });
   }
 
-  function imageToDataURL(img, mime, quality){
+  function imageToDataURL(img, mime, quality, rotateDeg){
     let w = img.naturalWidth;
     let h = img.naturalHeight;
     const maxEdge = Math.max(w, h);
@@ -524,31 +850,56 @@
       h = Math.round(h * scale);
     }
 
+    const rot = normalizeRotation(rotateDeg || 0);
+    const swap = rot === 90 || rot === 270;
     const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
+    canvas.width = swap ? h : w;
+    canvas.height = swap ? w : h;
     const ctx = canvas.getContext("2d", { alpha: true });
 
     if (mime === "image/jpeg") {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0,0,canvas.width,canvas.height);
     }
-    ctx.drawImage(img, 0, 0, w, h);
+    if (rot){
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate((rot * Math.PI) / 180);
+      ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    } else {
+      ctx.drawImage(img, 0, 0, w, h);
+    }
 
     if (mime === "image/png") return canvas.toDataURL("image/png");
     return canvas.toDataURL("image/jpeg", quality);
   }
 
+  function mmToPt(mm){
+    return mm * 72 / 25.4;
+  }
+
+  function clampMarginPt(marginPt, pageW, pageH){
+    const max = Math.max(0, (Math.min(pageW, pageH) / 2) - 1);
+    return Math.min(Math.max(0, marginPt), max);
+  }
+
   makeBtn.addEventListener("click", async () => {
     if (!items.length) return;
 
-    setStatus("Generating PDFâ€¦", "");
+    hideToast();
+    if (lastPdfUrl){
+      URL.revokeObjectURL(lastPdfUrl);
+      lastPdfUrl = null;
+    }
+    setStatus("", "");
     makeBtn.disabled = true;
+    setConvertProgress(0, items.length);
 
     try {
-      const margin = 24;
+      const marginMm = getMarginMm();
+      const marginPtRaw = mmToPt(marginMm);
       const size = pageSizeEl.value;
       const orientChoice = orientationEl.value; // auto | p | l
+      const fitMode = getFitMode();
       const jpgQ = Number(qualityEl.value);
       const keepPng = keepPngEl.checked;
 
@@ -558,11 +909,16 @@
       let firstPageUsed = false;
 
       for (let i = 0; i < items.length; i++) {
+        setConvertProgress(i + 1, items.length);
+        setStatus(`Converting\u2026 (${i + 1}/${items.length})`, "");
+
         const it = items[i];
         const img = await loadImage(it.url);
 
-        const imgW = img.naturalWidth;
-        const imgH = img.naturalHeight;
+        const rotation = normalizeRotation(it.rotate || 0);
+        const rotated = getRotatedDims(img.naturalWidth, img.naturalHeight, rotation);
+        const imgW = rotated.w;
+        const imgH = rotated.h;
 
         let pageOrient = "p";
         if (orientChoice === "auto") pageOrient = (imgW > imgH) ? "l" : "p";
@@ -570,6 +926,7 @@
 
         const page = getPageDims(size, pageOrient);
         const pageW = page.w, pageH = page.h;
+        const margin = clampMarginPt(marginPtRaw, pageW, pageH);
 
         if (!firstPageUsed) {
           const curW = pdf.internal.pageSize.getWidth();
@@ -588,7 +945,9 @@
 
         const maxW = pageW - margin * 2;
         const maxH = pageH - margin * 2;
-        const scale = Math.min(maxW / imgW, maxH / imgH);
+        const scale = (fitMode === "fill")
+          ? Math.max(maxW / imgW, maxH / imgH)
+          : Math.min(maxW / imgW, maxH / imgH);
 
         const drawW = imgW * scale;
         const drawH = imgH * scale;
@@ -597,7 +956,7 @@
 
         const usePng = keepPng && it.file.type === "image/png";
         const mime = usePng ? "image/png" : "image/jpeg";
-        const dataUrl = imageToDataURL(img, mime, jpgQ);
+        const dataUrl = imageToDataURL(img, mime, jpgQ, rotation);
 
         pdf.addImage(
           dataUrl,
@@ -611,17 +970,27 @@
       let outName = (pdfNameEl.value || "images.pdf").trim();
       if (!outName.toLowerCase().endsWith(".pdf")) outName += ".pdf";
 
-      pdf.save(outName);
+      const blob = pdf.output("blob");
+      const sizeText = bytesToNice(blob.size);
+      lastPdfUrl = URL.createObjectURL(blob);
+      lastPdfName = outName;
+      const downloadOk = triggerDownload(lastPdfUrl, lastPdfName);
+      showToast({
+        title: downloadOk ? "PDF ready" : "Download blocked",
+        sizeText,
+        showDownload: !downloadOk
+      });
       setStatus(`Done: ${outName}`, "ok");
     } catch (err) {
       console.error(err);
       setStatus("Failed to generate PDF. Try smaller images or fewer at a time.", "bad");
     } finally {
-      makeBtn.disabled = (items.length === 0);
+      endConvertProgress();
     }
   });
 
   // Init
-  qualityLabel.textContent = Number(qualityEl.value).toFixed(2);
+  setQualityLabel();
+  initMargin();
   updateBadges();
   render();
