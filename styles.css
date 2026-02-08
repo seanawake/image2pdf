@@ -104,9 +104,9 @@
         position:absolute;
         top:0;
         bottom:0;
-        left:50%;
-        width:100vw;
-        transform: translateX(-50%);
+        left:0;
+        right:0;
+        width:auto;
         background: linear-gradient(180deg,
           transparent 0%,
           color-mix(in oklab, var(--bg0) 70%, transparent) 40%,
