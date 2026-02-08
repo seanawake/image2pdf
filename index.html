@@ -39,6 +39,8 @@
         <div class="badge">
           <span id="countBadge">0 images</span>
           <span style="opacity:.7;">•</span>
+          <span id="sizeBadge">0.00 MB</span>
+          <span style="opacity:.7;">•</span>
           <span>Client-side</span>
         </div>
 
@@ -46,7 +48,7 @@
     </div>
 
     <div class="grid">
-      <div class="card">
+      <div class="card settings">
         <div class="sectionTitle">
           <h2>Input</h2>
         </div>
@@ -68,6 +70,10 @@
         </div>
 
         <div class="list" id="list"></div>
+        <div class="empty-note" id="emptyNote">
+          <div class="empty-badge">Private &#8226; Offline</div>
+          <div class="empty-text">Your files never leave this device. Works offline after first load.</div>
+        </div>
 
         <div class="status" id="status"></div>
         <div class="hint">
@@ -75,7 +81,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card settings">
         <div class="sectionTitle">
           <h2>PDF Settings</h2>
           <span class="pill" id="pageHint">A4 &#8226; Auto</span>
@@ -86,54 +92,105 @@
           <input id="pdfName" type="text" value="images.pdf" placeholder="images.pdf" />
         </div>
 
-        <div class="split">
-          <div class="field" style="margin-top:0;">
-            <label>Page size</label>
-            <select id="pageSize">
-              <option value="a4">A4</option>
-              <option value="letter">US Letter</option>
-            </select>
+        <div class="settings-stack">
+          <div class="split">
+            <div class="field">
+              <label>Page size</label>
+              <select id="pageSize">
+                <option value="a4">A4</option>
+                <option value="letter">US Letter</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Orientation</label>
+              <select id="orientation">
+                <option value="auto">Auto (per image)</option>
+                <option value="p">Portrait</option>
+                <option value="l">Landscape</option>
+              </select>
+            </div>
           </div>
 
-          <div class="field" style="margin-top:0;">
-            <label>Orientation</label>
-            <select id="orientation">
-              <option value="auto">Auto (per image)</option>
-              <option value="p">Portrait</option>
-              <option value="l">Landscape</option>
-            </select>
+          <div class="settings-actions">
+            <button id="makeBtn" class="btn primary block" disabled>⚡ Convert to PDF</button>
+            <div id="convertHint" class="muted convertHint">Add images to enable</div>
+            <button id="aboutBtn" class="btn ghost block" type="button">About this tool</button>
           </div>
         </div>
+        <div class="progress" id="progressWrap" aria-hidden="true">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
 
-        <div class="field">
-          <div class="qualityRow">
-            <label style="margin:0;">JPEG quality</label>
-            <span class="pill" id="qualityLabel">0.92</span>
+        <details class="advanced" id="advanced">
+          <summary>
+            <span>Advanced</span>
+            <span class="advancedRight">
+              <button id="resetBtn" class="textBtn" type="button">Reset</button>
+              <span class="chev" aria-hidden="true"></span>
+            </span>
+          </summary>
+          <div class="advancedBody">
+            <div class="setting-group">
+              <div class="field">
+              <div class="qualityRow">
+                <label style="margin:0;">JPEG Quality</label>
+                <span class="pill" id="qualityLabel">92%</span>
+              </div>
+              <div class="row slider-ends">
+                <span class="muted">Smaller file</span>
+                <span class="muted">Better quality</span>
+              </div>
+              <input id="quality" type="range" min="0.4" max="1" step="0.02" value="0.92" />
+              <div class="muted info">&#9432; Affects JPEG quality only.</div>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <div class="field">
+              <div class="qualityRow">
+                <label style="margin:0;">Margins</label>
+                <span class="pill" id="marginLabel">8 mm</span>
+              </div>
+              <input id="margin" type="range" min="0" max="25" step="1" value="8" />
+              <div class="muted info">&#9432; 0 = edge-to-edge. 8&ndash;12mm typical.</div>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <div class="field">
+                <div class="qualityRow">
+                  <label style="margin:0;">Fit mode</label>
+                  <span class="pill is-empty" aria-hidden="true">&nbsp;</span>
+                </div>
+                <div class="segToggle" role="group" aria-label="Fit mode">
+                  <button type="button" class="segBtn" data-fit="fit" aria-pressed="true">Fit (no crop)</button>
+                  <button type="button" class="segBtn" data-fit="fill" aria-pressed="false">Fill (crop)</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <div class="checkrow">
+                <input id="keepPng" type="checkbox" />
+                <div style="min-width:0;">
+                  <div style="font-weight:900; font-size:13px;">Keep PNG as PNG</div>
+                  <div class="muted" id="keepPngHint" style="font-size:12px;">Preserves transparency; larger files.</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <input id="quality" type="range" min="0.4" max="1" step="0.02" value="0.92" />
-          <div class="muted">Lower = smaller PDF, higher = better quality.</div>
-        </div>
-
-        <div class="checkrow">
-          <input id="keepPng" type="checkbox" />
-          <div style="min-width:0;">
-            <div style="font-weight:900; font-size:13px;">Keep PNG as PNG</div>
-            <div class="muted" style="font-size:12px;">Preserves transparency but often increases PDF size.</div>
-          </div>
-        </div>
-
-        <div class="row" style="margin-top:14px;">
-          <button id="makeBtn" class="btn primary" disabled>⚡ Convert to PDF</button>
-          <button id="aboutBtn" class="btn" type="button">About this tool</button>
-        </div>
+        </details>
 
       </div>
-<footer class="page-footer">
-  <div class="footer-title">Fast. Private. Local.</div>
-  <div class="footer-sub">No uploads. No accounts. Just drag, reorder, export.</div>
-  <div class="footer-sub">Runs 100% client-side • Works offline after first load • No tracking</div>
-  <div class="footer-sub">Made by Rajesh Acharya.</div>
-</footer>
+    </div>
+    <footer class="page-footer">
+      <div class="footer-title">Fast. Private. Local.</div>
+      <div class="footer-sub">No uploads. No accounts. Just drag, reorder, export.</div>
+      <div class="footer-sub">Runs 100% client-side • Works offline after first load • No tracking</div>
+      <div class="footer-sub">Made by Rajesh Acharya.</div>
+    </footer>
+  </div>
 
   <div id="aboutModal" class="modal-backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
@@ -143,29 +200,47 @@
       </div>
       <div class="modal-body">
         <p class="modal-section">ABOUT</p>
-        <p class="modal-lead">This tool was built for one reason: privacy.</p>
+        <p class="modal-lead">Built for privacy.</p>
         <p>
-          Rajesh Acharya wanted an Image → PDF converter that doesn’t force you to upload personal files to random servers.
-          Everything runs locally in your browser — your files stay on your device from start to finish.
+          This Image &#8594; PDF converter runs entirely in your browser. No uploads, no accounts, no tracking.
+          Your files stay on your device from start to finish.
         </p>
-
-        <p class="modal-section">PRIVACY GUARANTEE</p>
-        <ul class="feature-list">
-          <li>100% client-side processing</li>
-          <li>No uploads, no login, no tracking</li>
-          <li>Ideal for sensitive documents and personal photos</li>
-        </ul>
 
         <p class="modal-section">FEATURES</p>
         <ul class="feature-list">
-          <li>Drag & drop PNG/JPG</li>
-          <li>Smooth page reordering (handle drag + ghost preview + auto-scroll)</li>
+          <li>Add PNG/JPG (drag & drop on desktop)</li>
+          <li>Reorder pages easily</li>
           <li>Multi-page PDF export in your chosen order</li>
-          <li>A4/Letter + Auto/Portrait/Landscape</li>
-          <li>JPEG Quality slider (smaller PDF ↔ sharper pages)</li>
+          <li>A4 / US Letter + Auto / Portrait / Landscape</li>
+          <li>Margins slider (0&ndash;25mm)</li>
+          <li>Fit mode: Fit (no crop) / Fill (crop)</li>
+          <li>JPEG Quality slider (smaller file &#8596; sharper pages)</li>
           <li>Optional: Keep PNG as PNG (preserves transparency; larger files)</li>
-          <li>Light/Dark theme, saved locally</li>
         </ul>
+
+        <details class="more-details">
+          <summary>More details</summary>
+          <div class="more-details-body">
+            <p class="modal-section">PRIVACY GUARANTEE</p>
+            <ul class="feature-list">
+              <li>100% client-side processing</li>
+              <li>Nothing is uploaded anywhere</li>
+              <li>Works offline after first load (cached by your browser)</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true">
+    <div class="toast-body">
+      <div class="toast-title" id="toastTitle">PDF ready</div>
+      <div class="toast-sub" id="toastSub"></div>
+      <div class="toast-actions">
+        <button id="toastDownload" class="btn primary">Download</button>
+        <button id="toastOpen" class="btn">Open in new tab</button>
+        <button id="toastClose" class="btn">Close</button>
       </div>
     </div>
   </div>
