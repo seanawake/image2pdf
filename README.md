@@ -1,74 +1,45 @@
-# image2pdf
-# Image → PDF Converter (Client-Side)
+# Image → PDF (Local, Fast, Clean)
 
-A privacy-first Image → PDF converter that runs **entirely in your browser**.  
-No uploads. No accounts. No tracking. Just drag, reorder, export.
+A lightweight, privacy-first Image → PDF converter that runs **100% in your browser**.  
+No uploads. No accounts. No tracking. Your files stay on your device.
 
-**Made by Rajesh Acharya.**
-
----
-
-## Why this exists
-
-Most “free” online converters ask you to upload personal files to someone else’s server.  
-This tool was built to avoid that completely.
-
-✅ **100% client-side processing** — your images stay on your device  
-✅ **Works offline after first load**  
-✅ **Fast, simple, and clean UI**
-
----
+## Demo
+- Live app: https://seanawake.github.io/image2pdf/
 
 ## Features
+- ✅ Add JPG/PNG images
+- ✅ One image per PDF page (multi-page PDF)
+- ✅ Reorder pages (drag & drop on desktop)
+- ✅ Output settings:
+  - Page size: **A4 / US Letter**
+  - Orientation: **Auto / Portrait / Landscape**
+  - **Margins** slider (mm)
+  - Fit mode: **Fit (no crop) / Fill (crop)**
+  - **JPEG Quality** slider (smaller file ↔ better quality)
+  - Optional: **Keep PNG as PNG** (preserves transparency; may increase size)
+- ✅ Works offline after first load (browser cache)
 
-- Drag & drop **PNG/JPG** images
-- Reorder pages with **handle drag + ghost preview + auto-scroll**
-- Export a **multi-page PDF** in your chosen order
-- Page size: **A4 / Letter**
-- Orientation: **Auto (per image) / Portrait / Landscape**
-- **JPEG Quality** slider (smaller PDF ↔ sharper pages)
-- Optional: **Keep PNG as PNG** (preserves transparency, usually larger file)
-- **Light/Dark theme**, saved locally
+## Privacy
+This tool runs entirely client-side:
+- Images are processed locally in your browser
+- Nothing is uploaded to any server
+- No sign-in, no analytics, no tracking
 
----
+## How to Use
+1. Open the app
+2. Add images (drag & drop on desktop, or use the file picker)
+3. Reorder pages as needed
+4. Adjust PDF settings (optional)
+5. Click **Convert to PDF**
+6. Download / open your PDF
 
-## How it works
+## Limitations / Notes
+- **Mobile drag & drop is unreliable** across browsers. Use the file picker and the Up/Down controls for reordering.
+- Output size depends on images and quality settings.
+- “Fill (crop)” may crop edges to remove white borders. Use “Fit” to avoid cropping.
 
-1. Your browser loads the images locally.
-2. Images are converted and placed into PDF pages in your selected order.
-3. The PDF is generated and downloaded — **nothing is uploaded anywhere**.
-
----
-
-## Tech
-
-- Plain **HTML / CSS / JavaScript**
-- Uses **jsPDF** for PDF generation (included locally)
-
----
-
-## Getting started
-
-### Option 1: Run locally
-Just open `index.html` in your browser.
-
-### Option 2: Run with a local server (recommended)
-Some browsers are stricter with local file access. A local server avoids edge cases.
-
-Using VS Code:
-- Install the **Live Server** extension
-- Right-click `index.html` → **Open with Live Server**
-
-Or using Python:
-````bash
+## Local Development
+```bash
+# Just open index.html
+# OR run a simple local server:
 python -m http.server 8080
-
-````
-### Note
-
-This project is MIT licensed. If you reuse it, please keep attribution and consider linking back to this repo.
-
-## License
-MIT — see [LICENSE](LICENSE)
-
-
