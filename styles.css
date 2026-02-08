@@ -304,7 +304,7 @@
       .field{ display:flex; flex-direction:column; gap: var(--gap-xs); margin-top: var(--gap-md); min-width:0; }
       .field label{ font-size:12px; color:var(--muted); }
 
-      input[type="text"], select, input[type="range"]{
+      input[type="text"], select, input[type="range"], textarea{
         width:100%;
         max-width:100%;
         min-width:0;
@@ -315,6 +315,10 @@
         color: var(--text);
         outline:none;
         transition: border-color .18s ease, background .18s ease;
+      }
+      textarea{
+        min-height:120px;
+        resize: vertical;
       }
       input[type="range"]{
         accent-color: var(--accent);
@@ -358,7 +362,7 @@
         color: var(--text);
       }
       input[type="text"]::placeholder{ color: color-mix(in oklab, var(--muted) 70%, transparent); }
-      input[type="text"]:focus, select:focus, input[type="range"]:focus{
+      input[type="text"]:focus, select:focus, input[type="range"]:focus, textarea:focus{
         border-color: color-mix(in oklab, var(--accent) 65%, var(--borderStrong));
       }
 
@@ -406,7 +410,13 @@
         border-radius:14px;
         background: color-mix(in oklab, var(--panel) 60%, transparent);
       }
-      .checkrow input{ margin-top:2px; transform:scale(1.15); }
+      .checkrow input[type="checkbox"]{
+        margin-top:2px;
+        width:16px;
+        height:16px;
+        flex:0 0 auto;
+        accent-color: var(--accent);
+      }
 
       .card.settings .slider-ends{
         justify-content:space-between;
@@ -600,22 +610,34 @@
       .setting-group:has(#quality) .info{
         display:none;
       }
-      .setting-group:has(.checkrow){
+      .setting-group:not(.setting-group-page-num):has(.checkrow){
         padding:0;
         border:0;
         background: transparent;
         box-shadow:none;
       }
-      .setting-group:has(.checkrow) .checkrow{
+      .setting-group:not(.setting-group-page-num):has(.checkrow) .checkrow{
         margin:0;
         padding: var(--gap-md);
         border-radius: var(--radius2);
         border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
         background: color-mix(in oklab, var(--panel) 55%, transparent);
       }
-      html[data-theme="light"] .setting-group:has(.checkrow) .checkrow{
+      html[data-theme="light"] .setting-group:not(.setting-group-page-num):has(.checkrow) .checkrow{
         background: color-mix(in oklab, var(--panel) 45%, transparent);
         border-color: color-mix(in oklab, var(--border) 60%, transparent);
+      }
+      .setting-group.setting-group-page-num .checkrow{
+        margin:0;
+        padding:0;
+        border:0;
+        border-radius:0;
+        background: transparent;
+      }
+      .setting-group.setting-group-page-num .page-num-align-wrap{
+        margin-top: var(--gap-sm);
+        padding-top: var(--gap-sm);
+        border-top:1px solid color-mix(in oklab, var(--border) 70%, transparent);
       }
 
       .segToggle{
@@ -645,6 +667,51 @@
     .segBtn[aria-pressed="true"]{
       background: color-mix(in oklab, var(--accent) 18%, transparent);
       color: var(--text);
+    }
+    .segToggle-icon{
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:4px;
+      padding:3px;
+      border-radius:12px;
+      border:1px solid color-mix(in oklab, var(--borderStrong) 80%, transparent);
+      background: color-mix(in oklab, var(--panel) 72%, transparent);
+      box-shadow: inset 0 1px 0 color-mix(in oklab, var(--text) 6%, transparent);
+    }
+    .segToggle-icon .segBtn{
+      min-height:36px;
+      height:36px;
+      padding:0;
+      border-radius:9px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color: color-mix(in oklab, var(--muted) 86%, var(--text));
+      background: transparent;
+      opacity:.58;
+      transition: background .15s ease, color .15s ease, opacity .15s ease, box-shadow .15s ease;
+    }
+    .segToggle-icon .segBtn svg{
+      width:18px;
+      height:18px;
+      fill:none;
+      stroke:currentColor;
+      flex:0 0 auto;
+    }
+    .segToggle-icon .segBtn[aria-pressed="true"]{
+      opacity:1;
+      color: var(--text);
+      background: color-mix(in oklab, var(--accent) 22%, var(--panel));
+      box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--accent) 36%, transparent),
+        0 4px 10px color-mix(in oklab, var(--accent) 24%, transparent);
+    }
+    .segToggle-icon .segBtn:hover{
+      color: color-mix(in oklab, var(--muted) 70%, var(--text));
+      opacity:.8;
+    }
+    .segToggle-icon .segBtn:disabled{
+      opacity:.35;
+      cursor:not-allowed;
     }
 
     .list{ margin-top:14px; display:flex; flex-direction:column; gap:10px; }
@@ -738,42 +805,73 @@
 
     .meta{ display:flex; flex-direction:column; gap:2px; min-width:0; }
     .name{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      min-width:0;
       font-size:13px;
       font-weight:900;
+      line-height:1.2;
+    }
+    .nameText{
+      flex:1 1 auto;
       overflow:hidden;
       text-overflow:ellipsis;
       white-space:nowrap;
+      min-width:0;
     }
-    .small{ font-size:12px; color:var(--muted); }
+    .small{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.2;
+    }
+    .note-indicator{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:18px;
+      height:18px;
+      border-radius:999px;
+      border:0;
+      background: color-mix(in oklab, var(--accent) 14%, transparent);
+      color: color-mix(in oklab, var(--accent) 75%, var(--text));
+      margin-left:auto;
+      white-space:nowrap;
+      flex:0 0 auto;
+      opacity:.95;
+    }
+    .note-indicator svg{
+      width:12px;
+      height:12px;
+      fill:none;
+      stroke:currentColor;
+    }
     .actions{
       display:flex;
       gap:6px;
       flex-wrap:nowrap;
       align-items:center;
       justify-content:flex-end;
-      overflow-x:auto;
       max-width:100%;
-      -webkit-overflow-scrolling: touch;
     }
-    .item .actions{
+    .item .actions:not(.mobile-actions){
       display:flex;
       flex-direction:row !important;
       flex-wrap:nowrap !important;
       align-items:center;
       gap:6px;
-      overflow-x:auto;
-      min-width:max-content;
+      min-width:0;
     }
-    .item .actions .btn{
+    .item .actions:not(.mobile-actions) .btn{
       flex:0 0 auto !important;
       min-height:44px;
       width:44px !important;
       max-width:44px !important;
     }
-    .actions .btn{
+    .actions:not(.mobile-actions) .btn{
       min-height:44px;
     }
-      .actions .btn.icon{
+      .actions:not(.mobile-actions) .btn.icon{
         width:40px;
         min-height:40px;
         padding:0;
@@ -783,6 +881,11 @@
         fill: none;
         stroke: currentColor;
       }
+      .actions .btn.note-btn.is-active{
+        border-color: color-mix(in oklab, var(--accent) 55%, var(--borderStrong));
+        background: color-mix(in oklab, var(--accent) 12%, transparent);
+        color: var(--text);
+      }
 
     @media (max-width: 560px){
       .item{
@@ -791,18 +894,17 @@
         align-items:center;
       }
       .thumb{ width:64px; height:64px; }
-      .actions{
+      .actions:not(.mobile-actions){
         grid-column: 4;
         justify-content:flex-start;
         gap:4px;
         margin-top:0;
         align-self:center;
       }
-      .item .actions{
+      .item .actions:not(.mobile-actions){
         flex-wrap:nowrap !important;
-        overflow-x:visible;
       }
-      .item .actions .btn{
+      .item .actions:not(.mobile-actions) .btn{
         width:32px !important;
         max-width:32px !important;
         min-height:32px;
@@ -814,75 +916,111 @@
     @media (max-width: 480px){
       .item{
         display:grid;
-        grid-template-columns: 28px 60px minmax(0,1fr);
+        grid-template-columns: 24px 52px minmax(0,1fr);
         grid-template-rows: auto auto;
-        gap:8px 10px;
+        gap:6px 8px;
         align-items:center;
+        padding:8px;
+        border-radius:14px;
+        max-width:100%;
+        overflow:hidden;
       }
       .handle{
-        height:44px;
+        height:36px;
+        width:24px;
+        border-radius:10px;
         grid-column: 1;
         grid-row: 1;
         align-self:center;
       }
       .thumb{
-        width:60px;
-        height:60px;
+        width:52px;
+        height:52px;
+        border-radius:10px;
         grid-column: 2;
         grid-row: 1;
       }
       .meta{
         min-width:0;
+        overflow:hidden;
         grid-column: 3;
         grid-row: 1;
       }
       .name{
-        font-size:12px;
+        font-size:11px;
+        line-height:1.2;
         white-space:nowrap;
       }
       .small{
         font-size:11px;
+        line-height:1.2;
       }
-      .item.is-mobile .actions{
+      .note-indicator{
+        width:16px;
+        height:16px;
+      }
+      .note-indicator svg{
+        width:10px;
+        height:10px;
+      }
+      .actions.mobile-actions{
         grid-column: 1 / -1;
         grid-row: 2;
         display:flex;
         flex-direction:row;
         flex-wrap:nowrap;
         align-items:center;
-        justify-content:flex-start;
-        gap: var(--gap-xs);
+        justify-content:space-between;
+        gap: 6px;
         margin:0;
-        padding:0;
-        border:0;
+        padding: 6px;
+        border:1px solid color-mix(in oklab, var(--border) 70%, transparent);
+        border-top-color: color-mix(in oklab, var(--borderStrong) 75%, transparent);
+        border-radius:12px;
+        background: color-mix(in oklab, var(--panel) 62%, transparent);
+        box-shadow: inset 0 1px 0 color-mix(in oklab, var(--text) 5%, transparent);
         height:auto;
         min-height:0;
-        overflow:hidden;
-        min-width:0;
+        width:100%;
+        min-width:0 !important;
+        max-width:100%;
+        overflow-x:hidden;
+        overflow-y:hidden;
       }
-      .item.is-mobile .actions .btn{
-        width:32px !important;
-        height:32px;
-        max-width:32px !important;
-        min-height:0;
+      .actions.mobile-actions .btn{
+        flex:1 1 0;
+        width:auto !important;
+        height:40px;
+        max-width:40px !important;
+        min-height:40px;
+        min-width:0;
         padding:0;
         border-radius:10px;
-        border:1px solid var(--border);
-        background: transparent;
+        border:0;
+        background: color-mix(in oklab, var(--panel) 72%, transparent);
         box-shadow:none;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        transition: background .15s ease;
       }
-      .item.is-mobile .actions .btn.icon svg{
-        width:16px;
-        height:16px;
+      .actions.mobile-actions .btn:hover{
+        background: color-mix(in oklab, var(--accent) 12%, var(--panel));
       }
-      .item.is-mobile .actions .btn.is-disabled{
+      .actions.mobile-actions .btn:active{
+        background: color-mix(in oklab, var(--accent) 18%, var(--panel));
+      }
+      .actions.mobile-actions .btn.icon svg{
+        width:17px;
+        height:17px;
+      }
+      .actions.mobile-actions .btn.is-disabled{
         opacity:.25;
         color: var(--muted);
       }
-      .item.is-mobile .actions .btn.danger{
+      .actions.mobile-actions .btn.danger{
         color: var(--danger);
-        background: color-mix(in oklab, var(--danger) 12%, transparent);
-        border:0;
+        background: color-mix(in oklab, var(--danger) 12%, var(--panel));
       }
     }
 
@@ -923,6 +1061,20 @@
       width: calc(100vw - 32px);
     }
     .toast.is-open{ display: block; }
+    .toast.is-warning{
+      inset: 0;
+      width: auto;
+      max-width: none;
+      padding: 18px;
+    }
+    .toast.is-warning.is-open{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(4, 7, 14, 0.6);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
     .toast-body{
       background: linear-gradient(180deg, var(--panel), var(--panel2));
       border: 1px solid var(--border);
@@ -931,6 +1083,19 @@
       padding: 12px;
       backdrop-filter: var(--glass);
       -webkit-backdrop-filter: var(--glass);
+    }
+    .toast.is-warning .toast-body{
+      width:min(560px, 100%);
+      max-height:80vh;
+      overflow:auto;
+      border-color: color-mix(in oklab, var(--danger) 40%, var(--borderStrong));
+      box-shadow:
+        var(--shadow),
+        0 0 0 1px color-mix(in oklab, var(--danger) 35%, transparent);
+      padding:14px;
+    }
+    .toast.is-warning .toast-title{
+      color: color-mix(in oklab, var(--danger) 70%, var(--text));
     }
     .toast-title{
       font-weight: 900;
@@ -941,11 +1106,16 @@
       font-size: 12px;
       color: var(--muted);
       margin: -4px 0 8px;
+      line-height:1.45;
+      white-space:pre-line;
     }
     .toast-actions{
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+    }
+    .toast.is-warning .toast-actions{
+      justify-content:flex-end;
     }
 
     /* ====== GHOST PREVIEW ====== */
@@ -1060,6 +1230,43 @@
       letter-spacing: .5px;
       color: var(--muted);
     }
+    .modal-actions{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: var(--gap-sm);
+      margin-top: var(--gap-md);
+    }
+    .modal-actions-right{
+      display:flex;
+      gap: var(--gap-sm);
+      align-items:center;
+    }
+    .note-target{
+      font-size:12px;
+      color: var(--muted);
+      margin-bottom: var(--gap-sm);
+      word-break: break-all;
+    }
+    .note-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: var(--gap-sm);
+    }
+    .note-row label{
+      margin:0;
+      font-size:12px;
+      color: var(--muted);
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .counter{
+      font-size:11px;
+      color: var(--muted);
+      font-family: var(--mono);
+      opacity:.8;
+    }
     .more-details{
       margin-top: var(--gap-md);
       border-top:1px solid var(--border);
@@ -1077,7 +1284,8 @@
       color: var(--muted);
     }
     .more-details summary::-webkit-details-marker{ display:none; }
-    .more-details[open] summary{ color: var(--text); }
+    .more-details[open] summary{ display:none; }
+    .more-details[open] .more-details-body{ margin-top:0; }
     .more-details-body{ margin-top: var(--gap-sm); }
     .feature-list{
       margin: 0;
@@ -1087,4 +1295,3 @@
     .feature-list li{
       margin: 4px 0;
     }
-
